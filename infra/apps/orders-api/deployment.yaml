@@ -1,0 +1,27 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: orders-api
+  labels: { app: orders-api }
+spec:
+  replicas: 1
+  selector:
+    matchLabels: { app: orders-api }
+  template:
+    metadata:
+      labels: { app: orders-api }
+    spec:
+      containers:
+        - name: orders-api
+          image: orders-api:local
+          imagePullPolicy: IfNotPresent
+          env:
+            - name: ERROR_RATE
+              value: "0.02"  # ligeiramente alto
+            - name: EXTRA_LATENCY_MS
+              value: "50"
+          ports:
+            - containerPort: 8000
+          resources:
+            requests: { cpu: "50m", memory: "64Mi" }
+            limits:   { cpu: "250m", memory: "256Mi" }

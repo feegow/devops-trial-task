@@ -1,0 +1,22 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: alertmanager-kps
+  namespace: observability
+  labels:
+    app.kubernetes.io/name: alertmanager
+    app.kubernetes.io/instance: kps
+    app.kubernetes.io/component: alertmanager
+    app.kubernetes.io/part-of: kube-prometheus-stack
+    alertmanager: kps-alertmanager
+    app.kubernetes.io/managed-by: Helm
+    helm.sh/chart: kube-prometheus-stack
+
+data:
+  alertmanager.yaml: |
+    route:
+      receiver: webhook
+    receivers:
+      - name: webhook
+        webhook_configs:
+          - url: http://alert-debugger.observability.svc.cluster.local:8080/

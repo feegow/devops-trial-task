@@ -1,0 +1,9 @@
+loki:
+  auth_enabled: false
+promtail:
+  enabled: true
+  config:
+    snippets:
+      pipelineStages:
+        - docker: {}
+        - labeldrop: [container_hash]

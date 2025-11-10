@@ -1,0 +1,47 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: otel-collector
+spec:
+  selector:
+    matchLabels: { app: otel-collector }
+  template:
+    metadata:
+      labels: { app: otel-collector }
+    spec:
+      containers:
+        - name: otel-collector
+          image: otel/opentelemetry-collector:0.103.1
+          args: ["--config=/conf/otel.yaml"]
+          ports:
+            - containerPort: 4318 # OTLP http
+          volumeMounts:
+            - name: conf
+              mountPath: /conf
+      volumes:
+        - name: conf
+          configMap:
+            name: otel-collector-conf
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: otel-collector-conf
+  labels: { app: otel-collector }
+data:
+  otel.yaml: |
+    receivers:
+      otlp:
+        protocols:
+          http:
+    exporters:
+      otlphttp:
+        endpoint: http://tempo.observability.svc.cluster.local:4318
+    processors:
+      batch: {}
+    service:
+      pipelines:
+        traces:
+          receivers: [otlp]
+          processors: [batch]
+          exporters: [otlphttp]

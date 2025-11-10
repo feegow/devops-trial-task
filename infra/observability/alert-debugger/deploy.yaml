@@ -1,0 +1,29 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: alert-debugger
+  labels: { app: alert-debugger }
+spec:
+  replicas: 1
+  selector:
+    matchLabels: { app: alert-debugger }
+  template:
+    metadata:
+      labels: { app: alert-debugger }
+    spec:
+      containers:
+        - name: echo
+          image: ghcr.io/caarlos0/httpecho:latest
+          args: ["-port", "8080", "-i"]
+          ports:
+            - containerPort: 8080
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: alert-debugger
+spec:
+  selector: { app: alert-debugger }
+  ports:
+    - port: 8080
+      targetPort: 8080

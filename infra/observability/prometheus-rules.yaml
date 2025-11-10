@@ -1,0 +1,20 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: noisy-rules
+  labels: { release: kps }
+spec:
+  groups:
+    - name: app.availability
+      rules:
+        - alert: HighErrorRate
+          expr: sum(rate(http_requests_total{job="orders-api",status=~"5.."}[3m])) / sum(rate(http_requests_total{job="orders-api"}[3m])) > 0.005
+          for: 1m
+          labels: { severity: page, service: orders-api }
+          annotations:
+            summary: ">0.5% 5xx (1m) — pode ser ruidoso"
+        - alert: HighLatencyP95
+          expr: histogram_quantile(0.95, sum by (le)(rate(http_request_duration_seconds_bucket{job="orders-api"}[3m]))) > 0.15
+          for: 1m
+          labels: { severity: page, service: orders-api }
+          annotations: { summary: "p95 > 150ms (1m) — ruidoso" }

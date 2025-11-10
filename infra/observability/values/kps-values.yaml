@@ -1,0 +1,21 @@
+grafana:
+  enabled: true
+  defaultDashboardsEnabled: true
+  service:
+    type: NodePort
+  adminUser: admin
+  adminPassword: admin
+  sidecar:
+    dashboards:
+      enabled: true
+    datasources:
+      enabled: true
+prometheus:
+  prometheusSpec:
+    evaluationInterval: 15s
+    ruleNamespaceSelector: {}
+    ruleSelectorNilUsesHelmValues: false
+    # pega ServiceMonitors que tenham label release=kps
+    serviceMonitorSelector:
+      matchLabels:
+        release: kps

@@ -1,6 +1,6 @@
 # DevOps Senior — Trial Task
 
-Este repositório contém a infraestrutura base do desafio de DevOps Senior. O ambiente traz duas APIs de exemplo (Python e Go) que expõem dados fictícios de agendas médicas, inspirados no endpoint `GET /appoints/available-schedule` da Feegow. Sua missão é evoluir automação, observabilidade e confiabilidade a partir desse ponto de partida.
+Este repositório contém a infraestrutura base do desafio de DevOps Senior. O ambiente traz duas APIs de exemplo (Python e Go) que expõem dados fictícios de agendas médicas. Sua missão é evoluir automação, observabilidade e confiabilidade a partir desse ponto de partida.
 
 ## Requisitos
 
@@ -95,3 +95,58 @@ make down
 - O Grafana é servido via Ingress em `http://dev.local/grafana/`; não é necessário executar `kubectl port-forward`.
 - As APIs de exemplo ficam acessíveis via ingress: Python em `/v1/appoints/available-schedule` e Go em `/v2/appoints/available-schedule`.
 - O datasource Tempo utiliza o serviço exposto na porta `3200`; o `values/kps-values.yaml` já aponta para `tempo.observability.svc.cluster.local:3200`.
+
+## Desafio de Observabilidade (Trilha SRE)
+
+> Use esta trilha para demonstrar suas habilidades em monitoração, automação e qualidade operacional. Siga os itens obrigatórios abaixo; os opcionais rendem bônus.
+
+### Visão geral
+
+- **Prometheus**: refine alertas, crie regras de recording e relacione requisições × latência.
+- **Loki**: proponha correlação de logs com traces e dashboards no Explore.
+- **Tempo/OTel**: instrumente spans customizados, atributos relevantes e TraceQL para outliers.
+- **k6 + Prometheus Remote Write**: combine carga com métricas, analisando efeitos nos painéis/alertas.
+- **Checks sintéticos** (Blackbox/Browsertime): avalie uptime da UI e visão fim a fim.
+
+### Entregáveis obrigatórios
+
+1. **Reduzir ruído de alertas** (`infra/observability/prometheus-rules.yaml`)
+   - Escolha 2 alertas ruidosos e ajuste thresholds, `for`, labels (`severity`, `service`, `team`) e mensagem (inclua link para runbook).
+   - Documente antes/depois + justificativa em 2–4 linhas por alerta.
+2. **Definir 1 SLO + burn-rate**
+   - Disponibilidade 99,5%/30d para `/api/*` (descreva SLI/SLO).
+   - Adicione duas janelas de burn-rate (ex.: 2h/6h) com severidades distintas (page/ticket).
+   - Atualize o roteamento no `infra/observability/alertmanager.yaml` para os receivers corretos.
+3. **Alerta baseado em logs (Loki)**
+   - Criar alerta `LogsErrorBurst` para explosão de `level=error` em 5m.
+   - Documentar consulta e rótulos (`app`, `route`, `env`, `version`).
+4. **Dashboard de aplicação**
+   - Completar `dashboards/grafana/app-latency.json` com RPS, 4xx/5xx, p50/p90/p95 por rota, erros por rota.
+5. **CI/CD com testes unitários** (`.github/workflows/ci.yml`)
+   - Adicionar estágio “unit tests” (exit code correto, opcional: cobertura/cache).
+   - Demonstrar execução local (`act`) ou anexar logs, explicando em poucas linhas ganhos de velocidade/segurança.
+
+### Entregáveis opcionais
+
+- **HPA tuning**: ajustar targets/policies/stabilization e discutir trade-offs.
+- **Segurança rápida**: NetworkPolicy no namespace `apps` (deny-all + allow OTel/Grafana) e `trivy` na imagem, corrigindo 1 achado.
+- **Datadog (sem conta real)**: produzir 2 JSONs de Monitors (`HighErrorRate`, `HighLatencyP95`) inspirados no provider Terraform.
+- **Runbook extra**: novo runbook “Latência p95 alta” com checagens e rollback.
+
+### Checklist de submissão
+
+- Branch/PRs com diffs dos alertas, dashboards, pipelines etc.
+- Pastas atualizadas:
+  - `dashboards/` (JSON exportados)
+  - `observability/` (rules, alertmanager, datasources, dashboards)
+  - `runbooks/` (1-pager HighErrorRate + extras opcionais)
+  - `datadog-monitors/` (opcional)
+- Registre antes/depois dos alertas e resumo dos ajustes.
+
+### Recursos úteis
+
+- Grafana, Prometheus, Loki, Tempo docs.
+- Documentação do provedor [Datadog Terraform](https://registry.terraform.io/providers/DataDog/datadog/latest/docs) para monitores.
+- Comandos rápidos: `make up`, `make deploy`, `make load`, `make fire-alerts`, `kubectl logs -n apps`, `k6 run tests/k6/available_schedules.js`.
+
+> Dica: mantenha anotações das decisões e cite-as nos PRs/runbooks; isso ajuda na avaliação do raciocínio operacional.

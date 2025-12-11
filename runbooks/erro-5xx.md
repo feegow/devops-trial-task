@@ -5,11 +5,11 @@
 ## 1. Sinais de detecção
 
 - **Alertas**: verifique o canal/alertmanager para alertas de `% 5xx` ou latência acima do limiar.
-- **Dashboards**: abra o dashboard `Available Schedules — Latency & Errors` no Grafana (`http://dev.local/grafana/`). Observe:
+- **Dashboards**: abra o dashboard `Available Schedules — Latency & Errors` no Grafana (`http://dev.lab/grafana/`). Observe:
   - Painel "Error rate 5xx (%)" — aumento acima de 1% é suspeito.
   - Painel "Percentual de 5xx por rota" — identifica rotas específicas.
   - Painéis de latência p95 (APIs e frontend) — picos podem anteceder falhas.
-- **Logs**: Loki (`http://dev.local/grafana/` > Explore > Loki datasource) com consulta `app="available-schedules"` ou filtrando por `service.name`.
+- **Logs**: Loki (`http://dev.lab/grafana/` > Explore > Loki datasource) com consulta `app="available-schedules"` ou filtrando por `service.name`.
 - **Traces**: Tempo (`/grafana/` > Explore > Tempo datasource) para rastrear spans com `status.error`.
 
 ## 2. Checklist de isolamento rápido
@@ -25,7 +25,7 @@
 ### 3.1 Backend Python (v1)
 - `kubectl logs deploy/available-schedules-python -n apps --tail=200`.
 - Verifique logs de exceções em Python; observe mensagens de erro simuladas (decorator com `ERROR_RATE`).
-- Verifique métricas em `/metrics` com `curl http://dev.local/v1/metrics` (temporário) para contadores de erro.
+- Verifique métricas em `/metrics` com `curl http://dev.lab/v1/metrics` (temporário) para contadores de erro.
 - Se necessário, habilite debug local ajustando `ERROR_RATE`/`EXTRA_LATENCY_MS` nos manifests (`infra/apps/available-schedules-python`).
 
 ### 3.2 Backend Go (v2)

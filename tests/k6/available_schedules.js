@@ -1,26 +1,26 @@
-import http from 'k6/http';
-import { check, sleep } from 'k6';
-import { Trend } from 'k6/metrics';
+import http from "k6/http";
+import { check, sleep } from "k6";
+import { Trend } from "k6/metrics";
 
 export const options = {
   stages: [
-    { duration: '1m', target: 20 },
-    { duration: '2m', target: 50 },
-    { duration: '1m', target: 0 },
+    { duration: "1m", target: 20 },
+    { duration: "2m", target: 50 },
+    { duration: "1m", target: 0 },
   ],
   thresholds: {
-    http_req_failed: ['rate<0.01'],
-    http_req_duration: ['p(95)<800'],
-    'latency_frontend': ['p(95)<600'],
-    'latency_v1': ['p(95)<500'],
-    'latency_v2': ['p(95)<500'],
+    http_req_failed: ["rate<0.01"],
+    http_req_duration: ["p(95)<800"],
+    latency_frontend: ["p(95)<600"],
+    latency_v1: ["p(95)<500"],
+    latency_v2: ["p(95)<500"],
   },
 };
 
-const host = __ENV.HOST || 'http://dev.local';
-const latencyFrontend = new Trend('latency_frontend');
-const latencyV1 = new Trend('latency_v1');
-const latencyV2 = new Trend('latency_v2');
+const host = __ENV.HOST || "http://dev.lab";
+const latencyFrontend = new Trend("latency_frontend");
+const latencyV1 = new Trend("latency_v1");
+const latencyV2 = new Trend("latency_v2");
 
 const PROFESSIONAL_IDS = [2684, 512, 782, 903, 4102];
 const UNIT_IDS = [901, 905, 910, 915, 108];
@@ -44,11 +44,11 @@ export default function () {
   const frontendRes = http.get(`${host}/?t=${Date.now()}`);
   latencyFrontend.add(frontendRes.timings.duration);
   check(frontendRes, {
-    'front ok': (res) => res.status === 200,
+    "front ok": (res) => res.status === 200,
   });
 
   const params = {
-    tags: { service: 'available-schedules' },
+    tags: { service: "available-schedules" },
   };
 
   const v1Res = http.get(
@@ -57,8 +57,8 @@ export default function () {
   );
   latencyV1.add(v1Res.timings.duration);
   check(v1Res, {
-    'v1 ok': (res) => res.status === 200,
-    'v1 payload ok': (res) => res.json('response')?.length >= 1,
+    "v1 ok": (res) => res.status === 200,
+    "v1 payload ok": (res) => res.json("response")?.length >= 1,
   });
 
   const v2Res = http.get(
@@ -67,8 +67,8 @@ export default function () {
   );
   latencyV2.add(v2Res.timings.duration);
   check(v2Res, {
-    'v2 ok': (res) => res.status === 200,
-    'v2 payload ok': (res) => res.json('response')?.length >= 1,
+    "v2 ok": (res) => res.status === 200,
+    "v2 payload ok": (res) => res.json("response")?.length >= 1,
   });
 
   sleep(0.3);

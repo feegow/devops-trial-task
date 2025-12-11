@@ -28,9 +28,9 @@ if ! kind get clusters >/dev/null 2>&1; then
   fail "kind não conseguiu listar clusters. Confira suas credenciais kubeconfig."
 fi
 
-log_step "Confirmando entrada dev.local no /etc/hosts"
+log_step "Confirmando entrada dev.lab no /etc/hosts"
 if ! grep -qE '(^|\s)dev\.local($|\s)' /etc/hosts 2>/dev/null; then
-  printf '[preflight] entrada "dev.local" ausente em /etc/hosts. Adicione "127.0.0.1 dev.local" antes de seguir.\n' >&2
+  printf '[preflight] entrada "dev.lab" ausente em /etc/hosts. Adicione "127.0.0.1 dev.lab" antes de seguir.\n' >&2
 fi
 
 log_step "Pré-checks concluídos"

@@ -13,8 +13,10 @@ spec:
     spec:
       containers:
         - name: echo
-          image: ghcr.io/caarlos0/httpecho:latest
-          args: ["-port", "8080", "-i"]
+          image: hashicorp/http-echo:latest
+          args:
+            - "-text=alert-debugger ok"
+            - "-listen=:8080"
           ports:
             - containerPort: 8080
 ---

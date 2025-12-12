@@ -13,7 +13,7 @@ spec:
     spec:
       containers:
         - name: echo
-          image: hashicorp/http-echo:latest
+          image: hashicorp/http-echo:1.0
           args:
             - "-text=alert-debugger ok"
             - "-listen=:8080"

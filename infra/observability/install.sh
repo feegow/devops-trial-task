@@ -88,6 +88,8 @@ helm_install "Instalando kube-prometheus-stack (release kps)" \
   -f infra/observability/values/kps-values.yaml \
   --wait --timeout "${KPS_TIMEOUT}" --atomic
 
+apply_manifest "Aplicando LokiRules" observability infra/observability/loki-rules.yaml
+
 helm_install "Instalando Loki" \
   loki grafana/loki-stack \
   --namespace observability \
@@ -105,5 +107,4 @@ apply_manifest "Aplicando datasources Grafana" observability infra/observability
 apply_manifest "Aplicando dashboards Grafana" observability infra/observability/grafana-dashboards.yaml
 apply_manifest "Aplicando Alertmanager" observability infra/observability/alertmanager.yaml
 apply_manifest "Aplicando PrometheusRules" observability infra/observability/prometheus-rules.yaml
-apply_manifest "Aplicando LokiRules" observability infra/observability/loki-rules.yaml
 apply_manifest "Aplicando webhook debug de alertas" observability infra/observability/alert-debugger/deploy.yaml

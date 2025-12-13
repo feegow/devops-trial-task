@@ -5,3 +5,6 @@ __pycache__/
 .idea/
 .vscode/
 .DS_Store
+
+### Ignore report.xml test
+report.xml

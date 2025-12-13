@@ -43,6 +43,14 @@ jobs:
         working-directory: apps/available-schedules-go
         run: go build ./...
 
+      - name: Install Go test reporter
+        run: go install github.com/jstemmer/go-junit-report/v2@latest
+
+        #### Unit Test Go
+      - name: Run Go unit tests
+        working-directory: apps/available-schedules-go
+        run: go test -v ./tests/... 2>&1 | go-junit-report > report.xml
+
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
@@ -52,9 +60,17 @@ jobs:
         working-directory: apps/available-schedules-web
         run: npm install --omit=dev
 
-      - name: Upload test report (JUnit)
+        #### Unit Test Node
+      - name: Run Node unit tests
+        working-directory: apps/available-schedules-web
+        run: node --test --test-reporter=junit --test-reporter-destination=report.xml tests/server.test.mjs
+
+      - name: Upload test reports (JUnit)
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: junit-report
-          path: apps/available-schedules-python/report.xml
+          name: junit-reports
+          path: |
+            apps/available-schedules-python/report.xml
+            apps/available-schedules-go/report.xml
+            apps/available-schedules-web/report.xml

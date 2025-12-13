@@ -1,17 +1,25 @@
+import json
+import logging
 import os
 import random
 import time
-from datetime import datetime, timedelta, time as dt_time, date as dt_date
+from datetime import date as dt_date
+from datetime import datetime, timedelta
+from datetime import time as dt_time
 from functools import wraps
 
 from fastapi import FastAPI, Response
-from prometheus_client import CONTENT_TYPE_LATEST, Counter, Histogram, generate_latest
 from opentelemetry import trace
 from opentelemetry.exporter.otlp.proto.http.trace_exporter import OTLPSpanExporter
 from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
 from opentelemetry.sdk.resources import Resource
 from opentelemetry.sdk.trace import TracerProvider
 from opentelemetry.sdk.trace.export import BatchSpanProcessor
+from prometheus_client import CONTENT_TYPE_LATEST, Counter, Histogram, generate_latest
+
+#### Added Logging
+logging.basicConfig(level=logging.INFO, format="%(message)s")
+logger = logging.getLogger(__name__)
 
 ERROR_RATE = float(os.getenv("ERROR_RATE", "0.01"))
 EXTRA_LATENCY_MS = int(os.getenv("EXTRA_LATENCY_MS", "0"))
@@ -64,7 +72,11 @@ PROFESSIONALS = [
 
 UNITS = [
     {"id": 901, "name": "Clínica Central", "room": {"id": 12, "name": "Sala Azul"}},
-    {"id": 905, "name": "Unidade Bela Vista", "room": {"id": 203, "name": "Consultório 3"}},
+    {
+        "id": 905,
+        "name": "Unidade Bela Vista",
+        "room": {"id": 203, "name": "Consultório 3"},
+    },
     {"id": 910, "name": "Centro Norte", "room": {"id": 21, "name": "Sala Verde"}},
     {"id": 915, "name": "Hub Telemedicina", "room": {"id": 7, "name": "Estúdio 1"}},
 ]
@@ -180,12 +192,35 @@ def observe_route(route: str):
                             content="transient error retrieving schedule",
                             status_code=status,
                         )
+                        #### Added logging for error level
+                        logger.error(
+                            json.dumps(
+                                {
+                                    "level": "error",
+                                    "service": SERVICE_NAME,
+                                    "route": route,
+                                    "status": status,
+                                    "note": "simulated failure",
+                                }
+                            )
+                        )
                     else:
                         result = handler(*args, **kwargs)
                         if isinstance(result, Response):
                             status = result.status_code
                         else:
                             status = 200
+                        #### Added logging for info level
+                        logger.info(
+                            json.dumps(
+                                {
+                                    "level": "info",
+                                    "service": SERVICE_NAME,
+                                    "route": route,
+                                    "status": status,
+                                }
+                            )
+                        )
                 REQS.labels(route=route, status=str(status)).inc()
                 return result
 

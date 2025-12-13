@@ -307,14 +307,16 @@ func (s *server) instrument(route string, next http.HandlerFunc) http.HandlerFun
 			sw.WriteHeader(http.StatusInternalServerError)
 			sw.Header().Set("Content-Type", "application/json")
 			_, _ = sw.Write([]byte(`{"error":"transient error retrieving schedule"}`))
-			log.Printf(`{"service":"%s","route":"%s","status":%d,"latency_ms":%.2f,"note":"simulated failure"}`,
+			// Log error level message
+			log.Printf(`{"level":"error","service":"%s","route":"%s","status":%d,"latency_ms":%.2f,"note":"simulated failure"}`,
 				s.serviceName, route, sw.status, float64(time.Since(start))/float64(time.Millisecond))
 		} else {
 			next(sw, r.WithContext(ctx))
 			if sw.status == 0 {
 				sw.status = http.StatusOK
 			}
-			log.Printf(`{"service":"%s","route":"%s","status":%d,"latency_ms":%.2f}`,
+			// Log info level message
+			log.Printf(`{"level":"info","service":"%s","route":"%s","status":%d,"latency_ms":%.2f}`,
 				s.serviceName, route, sw.status, float64(time.Since(start))/float64(time.Millisecond))
 		}
 

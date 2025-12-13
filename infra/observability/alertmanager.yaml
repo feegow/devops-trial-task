@@ -16,6 +16,11 @@ data:
   alertmanager.yaml: |
     route:
       receiver: webhook
+    routes:
+      - matchers: [ 'severity="page"' ]
+        receiver: webhook
+      - matchers: [ 'severity="ticket"' ]
+        receiver: webhook
     receivers:
       - name: webhook
         webhook_configs:

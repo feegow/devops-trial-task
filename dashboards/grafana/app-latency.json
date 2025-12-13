@@ -1,68 +1,211 @@
 {
-    "title": "Available Schedules — Latency & Errors",
-    "schemaVersion": 39,
-    "version": 1,
-    "timezone": "",
-    "time": { "from": "now-6h", "to": "now" },
-    "panels": [
-      {
-        "type": "timeseries",
-        "title": "RPS (req/s)",
-        "gridPos": { "h": 8, "w": 12, "x": 0, "y": 0 },
-        "targets": [
-          {
-            "expr": "sum(rate(http_requests_total{job=~\"available-schedules-(python|go)\"}[5m]))",
-            "instant": false
-          }
-        ]
+  "title": "Available Schedules — Latency & Errors",
+  "schemaVersion": 39,
+  "version": 1,
+  "timezone": "",
+  "time": { "from": "now-6h", "to": "now" },
+  "panels": [
+    {
+      "type": "timeseries",
+      "title": "RPS (req/s)",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 0 },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "reqps"
+        }
       },
-      {
-        "type": "timeseries",
-        "title": "Error rate 5xx (%)",
-        "gridPos": { "h": 8, "w": 12, "x": 12, "y": 0 },
-        "targets": [
-          {
-            "expr": "100 * sum(rate(http_requests_total{job=~\"available-schedules-(python|go)\",status=~\"5..\"}[5m])) / sum(rate(http_requests_total{job=~\"available-schedules-(python|go)\"}[5m]))",
-            "instant": false
-          }
-        ]
-      },
-      {
-        "type": "timeseries",
-        "title": "Latency p95 por rota (TODO)",
-        "description": "Completar usando histogram_quantile por rota, ex.: histogram_quantile(0.95, sum by (route, le)(rate(http_request_duration_seconds_bucket{job=~\"available-schedules-(python|go)\"}[5m])))",
-        "gridPos": { "h": 8, "w": 12, "x": 0, "y": 8 },
-        "targets": [
-          {
-            "expr": "",
-            "instant": false
-          }
-        ]
-      },
-      {
-        "type": "table",
-        "title": "Erros por rota (TODO)",
-        "description": "Completar com % de 5xx por rota, ex.: 100 * sum(rate(http_requests_total{job=~\"available-schedules-(python|go)\",status=~\"5..\"}[5m])) by (route) / sum(rate(http_requests_total{job=~\"available-schedules-(python|go)\"}[5m])) by (route)",
-        "gridPos": { "h": 8, "w": 12, "x": 12, "y": 8 },
-        "targets": [
-          {
-            "expr": ""
-          }
-        ],
-        "transformations": [],
-        "options": { "showHeader": true }
-      }
-    ],
-    "templating": {
-      "list": [
+      "targets": [
         {
-          "type": "query",
-          "name": "route",
-          "label": "Route",
-          "query": "label_values(http_requests_total{job=~\"available-schedules-(python|go)\"}, route)",
-          "includeAll": true,
-          "current": { "text": "All", "value": "$__all" }
+          "expr": "sum(rate(http_requests_total{job=~\"available-schedules-(python|go)\"}[5m]))",
+          "instant": false
+        }
+      ]
+    },
+    {
+      "type": "timeseries",
+      "title": "Error rate 4xx/5xx (%)",
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 0 },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent"
+        }
+      },
+      "targets": [
+        {
+          "expr": "100 * sum(rate(http_requests_total{job=~\"available-schedules-(python|go)\",status=~\"4..\"}[5m])) / sum(rate(http_requests_total{job=~\"available-schedules-(python|go)\"}[5m]))",
+          "legendFormat": "4xx",
+          "instant": false
+        },
+        {
+          "expr": "100 * sum(rate(http_requests_total{job=~\"available-schedules-(python|go)\",status=~\"5..\"}[5m])) / sum(rate(http_requests_total{job=~\"available-schedules-(python|go)\"}[5m]))",
+          "legendFormat": "5xx",
+          "instant": false
+        }
+      ]
+    },
+    {
+      "type": "timeseries",
+      "title": "Latency p50/p90/p95 por rota",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 8 },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "s"
+        }
+      },
+      "targets": [
+        {
+          "expr": "histogram_quantile(0.50, sum by (route, le)(rate(http_request_duration_seconds_bucket{job=~\"available-schedules-(python|go)\"}[5m])))",
+          "legendFormat": "p50 - {{route}}"
+        },
+        {
+          "expr": "histogram_quantile(0.90, sum by (route, le)(rate(http_request_duration_seconds_bucket{job=~\"available-schedules-(python|go)\"}[5m])))",
+          "legendFormat": "p90 - {{route}}"
+        },
+        {
+          "expr": "histogram_quantile(0.95, sum by (route, le)(rate(http_request_duration_seconds_bucket{job=~\"available-schedules-(python|go)\"}[5m])))",
+          "legendFormat": "p95 - {{route}}"
+        }
+      ]
+    },
+    {
+      "type": "table",
+      "title": "Erros 5xx por rota (%)",
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 8 },
+      "targets": [
+        {
+          "expr": "100 * sum by (route)(rate(http_requests_total{job=~\"available-schedules-(python|go)\",status=~\"5..\"}[5m])) / sum by (route)(rate(http_requests_total{job=~\"available-schedules-(python|go)\"}[5m]))",
+          "format": "table",
+          "instant": false
+        }
+      ],
+      "transformations": [],
+      "options": { "showHeader": true }
+    },
+    {
+      "datasource": "Loki",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "barWidthFactor": 0.6,
+            "drawStyle": "line",
+            "fillOpacity": 0,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "auto",
+            "showValues": false,
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": 0
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          },
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 16
+      },
+      "id": 5,
+      "options": {
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "hideZeros": false,
+          "mode": "single",
+          "sort": "none"
+        }
+      },
+      "pluginVersion": "12.3.0",
+      "targets": [
+        {
+          "datasource": "Loki",
+          "expr": "sum by (app) (count_over_time({namespace=\"apps\"} |~ \"level.*error\" [1m]))",
+          "legendFormat": "{{app}}",
+          "queryType": "range",
+          "refId": "A"
+        }
+      ],
+      "title": "Error Logs (count)",
+      "type": "timeseries"
+    },
+    {
+      "type": "timeseries",
+      "title": "Tempo de resposta do frontend",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 16 },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "ms"
+        }
+      },
+      "targets": [
+        {
+          "expr": "histogram_quantile(0.95, sum by (le)(rate(http_request_duration_seconds_bucket{job=\"available-schedules-web\"}[5m])))",
+          "legendFormat": "p95",
+          "instant": false
+        },
+        {
+          "expr": "histogram_quantile(0.50, sum by (le)(rate(http_request_duration_seconds_bucket{job=\"available-schedules-web\"}[5m])))",
+          "legendFormat": "p50",
+          "instant": false
         }
       ]
     }
+  ],
+  "templating": {
+    "list": [
+      {
+        "type": "query",
+        "name": "route",
+        "label": "Route",
+        "query": "label_values(http_requests_total{job=~\"available-schedules-(python|go)\"}, route)",
+        "includeAll": true,
+        "current": { "text": "All", "value": "$__all" }
+      }
+    ]
   }
+}

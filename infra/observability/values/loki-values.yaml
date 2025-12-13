@@ -1,5 +1,26 @@
 loki:
   auth_enabled: false
+  config:
+    ruler:
+      storage:
+        type: local
+        local:
+          directory: /tmp/loki/rules
+      rule_path: /tmp/rules-temp
+      alertmanager_url: http://kps-alertmanager.observability.svc.cluster.local:9093
+      ring:
+        kvstore:
+          store: inmemory
+      enable_api: true
+  extraVolumes:
+    - name: loki-rules
+      configMap:
+        name: loki-rules
+  extraVolumeMounts:
+    - name: loki-rules
+      mountPath: /tmp/loki/rules/fake
+      readOnly: true
+
 promtail:
   enabled: true
   config:

@@ -89,7 +89,7 @@ infra/
     install.sh, repos.sh, prometheus-rules.yaml, alertmanager.yaml
     values/                  # Helm values (kps, loki, tempo, otel)
 dashboards/grafana/app-latency.json  # Dashboard with TODO panels
-runbooks/erro-5xx.md         # 5xx error runbook (Portuguese: "erro" = "error")
+runbooks/erro-5xx.md         # 5xx incident runbook (Portuguese: filename "erro-5xx" is intentional; "erro" means "error")
 tests/k6/available_schedules.js      # Load test script
 ```
 

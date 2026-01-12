@@ -9,7 +9,7 @@ DevOps trial repository with Kubernetes observability stack for medical scheduli
 ## Critical Build and Validation Instructions
 
 ### Prerequisites (ALWAYS verify first)
-`docker`, `kind`, `kubectl`, `helm`, `make` (required) | `k6` (optional for load testing)
+**Required**: `docker`, `kind`, `kubectl`, `helm`, `make`; **Optional**: `k6` (for load testing)
 
 ### Validated Command Sequences (MUST run in order)
 

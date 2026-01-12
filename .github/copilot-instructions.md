@@ -136,4 +136,3 @@ tests/k6/available_schedules.js      # Load test script
 
 ---
 **Trust these instructions**: All commands validated. Only search if errors occur or repo modified.
-

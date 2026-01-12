@@ -21,6 +21,9 @@ grafana:
       enabled: true
     datasources:
       enabled: true
+    alerts:
+      enabled: true
+      label: grafana_alert
   grafana.ini:
     server:
       root_url: "%(protocol)s://%(domain)s/grafana/"

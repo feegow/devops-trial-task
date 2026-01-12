@@ -80,6 +80,7 @@ helm_install "Instalando ingress-nginx" \
   --set controller.service.nodePorts.http=30080 \
   --set controller.service.nodePorts.https=30443 \
   --set controller.watchIngressWithoutClass=true \
+  --set controller.admissionWebhooks.enabled=false \
   --wait --timeout "${INGRESS_TIMEOUT}" --atomic
 
 helm_install "Instalando kube-prometheus-stack (release kps)" \
@@ -99,6 +100,12 @@ helm_install "Instalando Tempo" \
   --namespace observability \
   -f infra/observability/values/tempo-values.yaml \
   --wait --timeout "${TEMPO_TIMEOUT}" --atomic
+
+helm_install "Instalando Metrics Server" \
+  metrics-server metrics-server/metrics-server \
+  --namespace kube-system \
+  --set 'args[0]=--kubelet-insecure-tls' \
+  --wait --timeout 2m
 
 apply_manifest "Aplicando OTel Collector" observability infra/observability/values/otel-collector.yaml
 apply_manifest "Aplicando datasources Grafana" observability infra/observability/grafana-datasources.yaml

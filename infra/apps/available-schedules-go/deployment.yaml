@@ -9,7 +9,10 @@ spec:
     matchLabels: { app: available-schedules-go }
   template:
     metadata:
-      labels: { app: available-schedules-go }
+      labels:
+        app: available-schedules-go
+        env: development
+        version: v2
     spec:
       containers:
         - name: available-schedules-go

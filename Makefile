@@ -105,3 +105,7 @@ down: ## Destroi cluster
 	$(call log,Removendo cluster kind '$(KIND_CLUSTER)')
 	@kind delete cluster --name $(KIND_CLUSTER) >/dev/null
 	$(call sublog,Cluster removido)
+
+reload-grafana-alerts: ## Aplica alertas e reinicia Grafana
+	kubectl apply -f infra/observability/grafana-alerts.yaml
+	kubectl rollout restart deployment/kps-grafana  -n observability

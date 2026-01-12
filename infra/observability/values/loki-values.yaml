@@ -1,5 +1,6 @@
 loki:
   auth_enabled: false
+  isDefault: false
 promtail:
   enabled: true
   config:
@@ -7,3 +8,8 @@ promtail:
       pipelineStages:
         - docker: {}
         - labeldrop: [container_hash]
+      extraRelabelConfigs:
+        - source_labels: [__meta_kubernetes_pod_label_env]
+          target_label: env
+        - source_labels: [__meta_kubernetes_pod_label_version]
+          target_label: version

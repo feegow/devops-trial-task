@@ -1,20 +1,66 @@
 apiVersion: monitoring.coreos.com/v1
 kind: PrometheusRule
 metadata:
-  name: noisy-rules
+  name: rules-app-availability
   labels: { release: kps }
 spec:
   groups:
     - name: app.availability
       rules:
         - alert: HighErrorRate
-          expr: sum(rate(http_requests_total{job=~"available-schedules-(python|go)",status=~"5.."}[3m])) / sum(rate(http_requests_total{job=~"available-schedules-(python|go)"}[3m])) > 0.005
-          for: 1m
-          labels: { severity: page, service: available-schedules }
+          expr: sum(rate(http_requests_total{job=~"available-schedules-(python|go)",status=~"5.."}[3m])) / sum(rate(http_requests_total{job=~"available-schedules-(python|go)"}[3m])) > 0.01
+          for: 5m
+          labels:
+            severity: warning
+            service: available-schedules
+            team: backend
           annotations:
-            summary: ">0.5% 5xx (1m) — pode ser ruidoso"
+            summary: "Taxa de erros 5xx acima de 1% por mais de 5 minutos"
+            description: "A API available-schedules está com {{ $value }} de erros 5xx."
+            runbook_url: "https://github.com/seu-usuario/devops-trial-task/blob/main/runbooks/erro-5xx.md"
         - alert: HighLatencyP95
-          expr: histogram_quantile(0.95, sum by (le)(rate(http_request_duration_seconds_bucket{job=~"available-schedules-(python|go)"}[3m]))) > 0.15
-          for: 1m
-          labels: { severity: page, service: available-schedules }
-          annotations: { summary: "p95 > 150ms (1m) — ruidoso" }
+          expr: histogram_quantile(0.95, sum by (le)(rate(http_request_duration_seconds_bucket{job=~"available-schedules-(python|go)"}[5m]))) > 0.5
+          for: 5m
+          labels:
+            severity: warning
+            service: available-schedules
+            team: backend
+          annotations:
+            summary: "Latência p95 acima de 500ms por mais de 5 minutos"
+            description: "A API available-schedules está com latência p95 de {{ $value }}."
+            runbook_url: "https://github.com/seu-usuario/devops-trial-task/blob/main/runbooks/erro-5xx.md"
+                # SLO Burn-Rate Alerts
+        - alert: SLOHighBurnRate2h
+          expr: |
+            (
+              sum(rate(http_requests_total{job=~"available-schedules-(python|go)",status=~"5.."}[2h]))
+              /
+              sum(rate(http_requests_total{job=~"available-schedules-(python|go)"}[2h]))
+            ) > (14.4 * 0.005)
+          for: 5m
+          labels:
+            severity: pager
+            service: available-schedules
+            team: backend
+            slo: availability
+          annotations:
+            summary: "SLO burn rate crítico - janela 2h"
+            description: "Error budget será esgotado em ~2 dias. Taxa de erro atual: {{ $value }}"
+            runbook_url: "https://github.com/seu-usuario/devops-trial-task/blob/main/runbooks/erro-5xx.md"
+        - alert: SLOHighBurnRate6h
+          expr: |
+            (
+              sum(rate(http_requests_total{job=~"available-schedules-(python|go)",status=~"5.."}[6h]))
+              /
+              sum(rate(http_requests_total{job=~"available-schedules-(python|go)"}[6h]))
+            ) > (6 * 0.005)
+          for: 15m
+          labels:
+            severity: ticket
+            service: available-schedules
+            team: backend
+            slo: availability
+          annotations:
+            summary: "SLO burn rate elevado - janela 6h"
+            description: "Error budget será esgotado em ~5 dias. Taxa de erro atual: {{ $value }}"
+            runbook_url: "https://github.com/seu-usuario/devops-trial-task/blob/main/runbooks/erro-5xx.md"

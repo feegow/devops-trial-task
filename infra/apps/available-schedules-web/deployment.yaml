@@ -9,7 +9,10 @@ spec:
     matchLabels: { app: available-schedules-web }
   template:
     metadata:
-      labels: { app: available-schedules-web }
+      labels: 
+        app: available-schedules-web
+        env: development
+        version: frontend
     spec:
       containers:
         - name: available-schedules-web

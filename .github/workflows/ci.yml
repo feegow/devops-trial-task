@@ -18,7 +18,7 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: "3.11"
-          cache: "pip"
+          #cache: "pip"
           cache-dependency-path: apps/available-schedules-python/requirements.txt
 
       - name: Install Python dependencies
@@ -26,6 +26,22 @@ jobs:
         run: |
           pip install -r requirements.txt
           pip install pytest pytest-cov
+
+      - name: Run Trivy security scan (Python)
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: 'fs'
+          scan-ref: 'apps/available-schedules-python'
+          format: 'table'
+          severity: 'CRITICAL,HIGH'
+
+      - name: Run Trivy security scan (Go)
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: 'fs'
+          scan-ref: 'apps/available-schedules-go'
+          format: 'table'
+          severity: 'CRITICAL,HIGH'
 
       - name: Run Python unit tests
         working-directory: apps/available-schedules-python
@@ -42,6 +58,10 @@ jobs:
       - name: Build Go service
         working-directory: apps/available-schedules-go
         run: go build ./...
+      
+      - name: Run Go unit tests
+        working-directory: apps/available-schedules-go
+        run: go test -v ./...
 
       - name: Setup Node
         uses: actions/setup-node@v4

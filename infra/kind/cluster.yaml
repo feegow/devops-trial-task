@@ -3,6 +3,7 @@ kind: Cluster
 name: devops-lab
 nodes:
   - role: control-plane
+    image: kindest/node:v1.31.0
     extraPortMappings:
       - containerPort: 30080
         hostPort: 80

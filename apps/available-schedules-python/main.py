@@ -36,6 +36,7 @@ REQS = Counter("http_requests_total", "Total HTTP requests", ["route", "status"]
 LAT = Histogram(
     "http_request_duration_seconds",
     "Request latency",
+    ["route"],
     buckets=(0.05, 0.1, 0.2, 0.3, 0.5, 0.75, 1, 2, 5),
 )
 
@@ -168,7 +169,7 @@ def observe_route(route: str):
     def decorator(handler):
         @wraps(handler)
         def wrapper(*args, **kwargs):
-            with LAT.time():
+            with LAT.labels(route=route).time():
                 if EXTRA_LATENCY_MS > 0:
                     time.sleep(EXTRA_LATENCY_MS / 1000)
                 status = 200

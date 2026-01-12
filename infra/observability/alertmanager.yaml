@@ -16,7 +16,25 @@ data:
   alertmanager.yaml: |
     route:
       receiver: webhook
+      group_by: ['alertname', 'severity']
+      group_wait: 30s
+      group_interval: 5m
+      repeat_interval: 4h
+      routes:
+        - match:
+            severity: page
+          receiver: pager
+        - match:
+            severity: ticket
+          receiver: ticket
+        # severity: warning vai para o receiver padrão (webhook)
     receivers:
       - name: webhook
+        webhook_configs:
+          - url: http://alert-debugger.observability.svc.cluster.local:8080/
+       - name: pager
+        webhook_configs:
+          - url: http://alert-debugger.observability.svc.cluster.local:8080/
+      - name: ticket
         webhook_configs:
           - url: http://alert-debugger.observability.svc.cluster.local:8080/

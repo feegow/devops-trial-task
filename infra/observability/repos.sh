@@ -16,5 +16,6 @@ log "Sincronizando repositórios Helm necessários"
 add_repo prometheus-community https://prometheus-community.github.io/helm-charts
 add_repo grafana https://grafana.github.io/helm-charts
 add_repo ingress-nginx https://kubernetes.github.io/ingress-nginx
+add_repo metrics-server https://kubernetes-sigs.github.io/metrics-server/
 helm repo update >/dev/null
 log "Índices atualizados"

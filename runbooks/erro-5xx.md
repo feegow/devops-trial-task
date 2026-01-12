@@ -10,6 +10,8 @@
   - Painel "Percentual de 5xx por rota" — identifica rotas específicas.
   - Painéis de latência p95 (APIs e frontend) — picos podem anteceder falhas.
 - **Logs**: Loki (`http://dev.local/grafana/` > Explore > Loki datasource) com consulta `app="available-schedules"` ou filtrando por `service.name`.
+  - **Consulta Loki** (alta taxa de erros):
+  - `sum by (app, route) (count_over_time({namespace="apps"} |~ "status\":5[0-9]{2}" [5m]))`
 - **Traces**: Tempo (`/grafana/` > Explore > Tempo datasource) para rastrear spans com `status.error`.
 
 ## 2. Checklist de isolamento rápido

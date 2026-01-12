@@ -63,7 +63,7 @@ make down          # Tear down cluster
 ### Common Build Failures
 1. **Docker not accessible**: Ensure daemon running (`docker info`)
 2. **Helm timeout**: Increase via `export HELM_TIMEOUT_KPS=15m`
-3. **Port conflicts**: Ports 80/443 must be free (ingress uses 30080→80, 30443→443)
+3. **Port conflicts**: Ports 80/443 must be free (ingress ports 80/443 are exposed on host ports 30080/30443)
 4. **Image not in kind**: Re-run `make deploy`
 
 ## Project Layout

@@ -39,7 +39,7 @@ Node.js:
 ```bash
 cd apps/available-schedules-web && npm install --omit=dev
 ```
-Time: ~5s. No tests exist. NEVER commit `node_modules/`, `package-lock.json`.
+Time: ~5s. No tests exist. `package-lock.json` not committed (zero dependencies, just metadata).
 
 **3. CI Pipeline** (`.github/workflows/ci.yml`):
 Runs on all pushes/PRs: Python tests (pytest+coverage) → Go build → Node deps. Duration: ~2-3 min. ALWAYS ensure your changes pass.
@@ -89,7 +89,7 @@ infra/
     install.sh, repos.sh, prometheus-rules.yaml, alertmanager.yaml
     values/                  # Helm values (kps, loki, tempo, otel)
 dashboards/grafana/app-latency.json  # Dashboard with TODO panels
-runbooks/erro-5xx.md         # 5xx error runbook (Portuguese)
+runbooks/erro-5xx.md         # 5xx error runbook (Portuguese: "erro" = "error")
 tests/k6/available_schedules.js      # Load test script
 ```
 
@@ -124,12 +124,13 @@ tests/k6/available_schedules.js      # Load test script
 ## Best Practices
 
 1. **ALWAYS** run `./scripts/preflight.sh` before `make up`
-2. **NEVER commit**: `.coverage`, `report.xml`, Go binary, `node_modules/`, `package-lock.json`
-3. **Test locally first**: Run `pytest` (Python), `go build` (Go) before pushing
-4. **CI must pass**: Changes must pass `.github/workflows/ci.yml`
-5. **Use Make targets**: `make deploy` over manual `kubectl apply` (ensures image loading)
-6. **Check logs**: `kubectl logs -n apps deploy/<service>` after changes
-7. **Document env changes**: Update Dockerfile defaults AND deployment.yaml
+2. **NEVER commit**: `.coverage`, `report.xml` (test artifacts), Go binary (build artifact), `node_modules/` (dependencies)
+3. **Special case - package-lock.json**: Not committed for this repo since package.json has zero dependencies (just metadata). For real Node.js projects with dependencies, package-lock.json SHOULD be committed.
+4. **Test locally first**: Run `pytest` (Python), `go build` (Go) before pushing
+5. **CI must pass**: Changes must pass `.github/workflows/ci.yml`
+6. **Use Make targets**: `make deploy` over manual `kubectl apply` (ensures image loading)
+7. **Check logs**: `kubectl logs -n apps deploy/<service>` after changes
+8. **Document env changes**: Update Dockerfile defaults AND deployment.yaml
 
 ## README.md Summary
 152-line Portuguese doc covering: requirements (docker/kind/kubectl/helm/make), setup steps (`make up`, `make deploy`), accessing apps (`http://dev.local`), Grafana dashboards, load testing (`make load`), alert testing (`make fire-alerts`/`make calm`), intentional issues for improvement, and observability challenge details (SRE track with SLOs, burn-rates, Loki alerts, dashboard completion, CI/CD unit tests).

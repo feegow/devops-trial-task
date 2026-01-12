@@ -5,3 +5,12 @@ __pycache__/
 .idea/
 .vscode/
 .DS_Store
+
+# Test and build artifacts
+.coverage
+*.xml
+report.xml
+available-schedules-go
+available-schedules-python
+available-schedules-web
+node_modules/

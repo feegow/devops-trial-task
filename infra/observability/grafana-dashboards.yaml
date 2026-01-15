@@ -8,211 +8,224 @@ metadata:
 data:
   app-latency.json: |
     {
-      "title": "Available Schedules — Latency & Errors",
-      "schemaVersion": 39,
-      "version": 1,
-      "timezone": "",
-      "time": { "from": "now-6h", "to": "now" },
-      "panels": [
+      "title":"Available Schedules — Latency & Errors",
+      "schemaVersion":39,
+      "version":1,
+      "timezone":"",
+      "time":{
+        "from":"now-6h",
+        "to":"now"
+      },
+      "panels":[
         {
-      "fieldConfig": {
-        "defaults": {
-          "custom": {
-            "align": "left",
-            "cellOptions": {
-              "type": "auto"
-            },
-            "footer": {
-              "reducers": []
-            },
-            "inspect": false
-          },
-          "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": 0
+          "fieldConfig":{
+            "defaults":{
+              "custom":{
+                "align":"left",
+                "cellOptions":{
+                  "type":"auto"
+                },
+                "footer":{
+                  "reducers":[
+                    
+                  ]
+                },
+                "inspect":false
               },
-              {
-                "color": "red",
-                "value": 80
-              }
-            ]
-          }
-        },
-        "overrides": [
-          {
-            "matcher": {
-              "id": "byName",
-              "options": "Severidade"
-            },
-            "properties": [
-              {
-                "id": "mappings",
-                "value": [
+              "mappings":[
+                
+              ],
+              "thresholds":{
+                "mode":"absolute",
+                "steps":[
                   {
-                    "options": {
-                      "aviso": {
-                        "color": "orange",
-                        "text": "⚠️ AVISO"
-                      },
-                      "urgente": {
-                        "color": "red",
-                        "text": "🚨 URGENTE"
-                      }
-                    },
-                    "type": "value"
+                    "color":"green",
+                    "value":0
+                  },
+                  {
+                    "color":"red",
+                    "value":80
                   }
                 ]
               }
+            }
+          },
+          "gridPos":{
+            "h":8,
+            "w":12,
+            "x":12,
+            "y":16
+          },
+          "id":1,
+          "options":{
+            "cellHeight":"sm",
+            "showHeader":true,
+            "sortBy":[
+              {
+                "desc":true,
+                "displayName":"Horário"
+              }
             ]
-          }
-        ]
-      },
-      "gridPos": {
-        "h": 10,
-        "w": 24,
-        "x": 0,
-        "y": 24
-      },
-      "id": 1,
-      "options": {
-        "cellHeight": "sm",
-        "showHeader": true,
-        "sortBy": [
-          {
-            "desc": true,
-            "displayName": "Horário"
-          }
-        ]
-      },
-      "pluginVersion": "12.3.1",
-      "targets": [
-        {
-          "expr": "max by (alertname, severity, service) (ALERTS{alertname=~\"HighError.*|HighLatency.*\"})",
-          "format": "table",
-          "instant": false,
-          "refId": "A"
-        }
-      ],
-      "title": "Histórico de Alertas",
-      "transformations": [
-        {
-          "id": "organize",
-          "options": {
-            "excludeByName": {
-              "Value": true
-            },
-            "includeByName": {},
-            "indexByName": {},
-            "renameByName": {
-              "Time": "Horário",
-              "alertname": "Alerta",
-              "service": "Serviço",
-              "severity": "Tipo"
-            }
-          }
-        }
-      ],
-      "type": "table"
-    },
-        {
-          "type": "timeseries",
-          "title": "RPS (req/s)",
-          "gridPos": { "h": 8, "w": 12, "x": 0, "y": 0 },
-          "fieldConfig": {
-            "defaults": {
-              "unit": "reqps"
-            }
           },
-          "targets": [
+          "pluginVersion":"12.3.1",
+          "targets":[
             {
-              "expr": "sum(rate(http_requests_total{job=~\"available-schedules-(python|go)\"}[5m]))",
-              "instant": false
-            }
-          ]
-        },
-        {
-          "type": "timeseries",
-          "title": "Error rate 5xx (%)",
-          "gridPos": { "h": 8, "w": 12, "x": 12, "y": 0 },
-          "fieldConfig": {
-            "defaults": {
-              "unit": "percent"
-            }
-          },
-          "targets": [
-            {
-              "expr": "100 * sum(rate(http_requests_total{job=~\"available-schedules-(python|go)\",status=~\"5..\"}[5m])) / sum(rate(http_requests_total{job=~\"available-schedules-(python|go)\"}[5m]))",
-              "instant": false
-            }
-          ]
-        },
-        {
-          "type": "timeseries",
-          "title": "Latency p95 por rota",
-          "description": "histogram_quantile(0.95, sum by (route, le)(rate(http_request_duration_seconds_bucket{job=~\"available-schedules-(python|go)\"}[5m])))",
-          "gridPos": { "h": 8, "w": 12, "x": 0, "y": 8 },
-          "fieldConfig": {
-            "defaults": {
-              "unit": "s"
-            }
-          },
-          "targets": [
-            {
-              "expr": "histogram_quantile(0.95, sum by (route, le)(rate(http_request_duration_seconds_bucket{job=~\"available-schedules-(python|go)\"}[5m])))",
-              "legendFormat": "{{route}}",
-              "instant": false
-            }
-          ]
-        },
-        {
-          "type": "table",
-          "title": "Percentual de 5xx por rota",
-          "gridPos": { "h": 8, "w": 12, "x": 12, "y": 8 },
-          "targets": [
-            {
-              "expr": "100 * sum(rate(http_requests_total{job=~\"available-schedules-(python|go)\",status=~\"5..\"}[5m])) by (route) / sum(rate(http_requests_total{job=~\"available-schedules-(python|go)\"}[5m])) by (route)",
-              "format": "table",
-              "instant": false
+              "expr":"max by (alertname, severity, service) (ALERTS{alertname=~\"HighError.*|HighLatency.*\"})",
+              "format":"table",
+              "instant":false,
+              "refId":"A"
             }
           ],
-          "transformations": []
+          "title":"Histórico de Alertas",
+          "transformations":[
+            {
+              "id":"organize",
+              "options":{
+                "excludeByName":{
+                  "Value":true
+                },
+                "includeByName":{
+                  
+                },
+                "indexByName":{
+                  
+                },
+                "renameByName":{
+                  "Time":"Horário",
+                  "alertname":"Alerta",
+                  "service":"Serviço",
+                  "severity":"Tipo"
+                }
+              }
+            }
+          ],
+          "type":"table"
         },
         {
-          "type": "timeseries",
-          "title": "Tempo de resposta do frontend",
-          "gridPos": { "h": 8, "w": 12, "x": 0, "y": 16 },
-          "fieldConfig": {
-            "defaults": {
-              "unit": "ms"
+          "type":"timeseries",
+          "title":"RPS (req/s)",
+          "gridPos":{
+            "h":8,
+            "w":12,
+            "x":0,
+            "y":0
+          },
+          "fieldConfig":{
+            "defaults":{
+              "unit":"reqps"
             }
           },
-          "targets": [
+          "targets":[
             {
-              "expr": "histogram_quantile(0.95, sum by (le)(rate(http_request_duration_seconds_bucket{job=\"available-schedules-web\"}[5m])))",
-              "legendFormat": "p95",
-              "instant": false
+              "expr":"sum(rate(http_requests_total{job=~\"available-schedules-(python|go)\"}[5m]))",
+              "instant":false
+            }
+          ]
+        },
+        {
+          "type":"timeseries",
+          "title":"Error rate 5xx (%)",
+          "gridPos":{
+            "h":8,
+            "w":12,
+            "x":12,
+            "y":0
+          },
+          "fieldConfig":{
+            "defaults":{
+              "unit":"percent"
+            }
+          },
+          "targets":[
+            {
+              "expr":"100 * sum(rate(http_requests_total{job=~\"available-schedules-(python|go)\",status=~\"5..\"}[5m])) / sum(rate(http_requests_total{job=~\"available-schedules-(python|go)\"}[5m]))",
+              "instant":false
+            }
+          ]
+        },
+        {
+          "type":"timeseries",
+          "title":"Latency p95 por rota",
+          "description":"histogram_quantile(0.95, sum by (route, le)(rate(http_request_duration_seconds_bucket{job=~\"available-schedules-(python|go)\"}[5m])))",
+          "gridPos":{
+            "h":8,
+            "w":12,
+            "x":0,
+            "y":8
+          },
+          "fieldConfig":{
+            "defaults":{
+              "unit":"s"
+            }
+          },
+          "targets":[
+            {
+              "expr":"histogram_quantile(0.95, sum by (route, le)(rate(http_request_duration_seconds_bucket{job=~\"available-schedules-(python|go)\"}[5m])))",
+              "legendFormat":"{{route}}",
+              "instant":false
+            }
+          ]
+        },
+        {
+          "type":"table",
+          "title":"Percentual de 5xx por rota",
+          "gridPos":{
+            "h":8,
+            "w":12,
+            "x":12,
+            "y":8
+          },
+          "targets":[
+            {
+              "expr":"100 * sum(rate(http_requests_total{job=~\"available-schedules-(python|go)\",status=~\"5..\"}[5m])) by (route) / sum(rate(http_requests_total{job=~\"available-schedules-(python|go)\"}[5m])) by (route)",
+              "format":"table",
+              "instant":false
+            }
+          ],
+          "transformations":[
+            
+          ]
+        },
+        {
+          "type":"timeseries",
+          "title":"Tempo de resposta do frontend",
+          "gridPos":{
+            "h":8,
+            "w":12,
+            "x":0,
+            "y":16
+          },
+          "fieldConfig":{
+            "defaults":{
+              "unit":"ms"
+            }
+          },
+          "targets":[
+            {
+              "expr":"histogram_quantile(0.95, sum by (le)(rate(http_request_duration_seconds_bucket{job=\"available-schedules-web\"}[5m])))",
+              "legendFormat":"p95",
+              "instant":false
             },
             {
-              "expr": "histogram_quantile(0.50, sum by (le)(rate(http_request_duration_seconds_bucket{job=\"available-schedules-web\"}[5m])))",
-              "legendFormat": "p50",
-              "instant": false
+              "expr":"histogram_quantile(0.50, sum by (le)(rate(http_request_duration_seconds_bucket{job=\"available-schedules-web\"}[5m])))",
+              "legendFormat":"p50",
+              "instant":false
             }
           ]
         }
       ],
-      "templating": {
-        "list": [
+      "templating":{
+        "list":[
           {
-            "type": "query",
-            "name": "route",
-            "label": "Route",
-            "query": "label_values(http_requests_total{job=~\"available-schedules-(python|go)\"}, route)",
-            "includeAll": true,
-            "current": { "text": "All", "value": "$__all" }
+            "type":"query",
+            "name":"route",
+            "label":"Route",
+            "query":"label_values(http_requests_total{job=~\"available-schedules-(python|go)\"}, route)",
+            "includeAll":true,
+            "current":{
+              "text":"All",
+              "value":"$__all"
+            }
           }
         ]
       }

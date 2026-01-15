@@ -15,6 +15,110 @@ data:
       "time": { "from": "now-6h", "to": "now" },
       "panels": [
         {
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "align": "left",
+            "cellOptions": {
+              "type": "auto"
+            },
+            "footer": {
+              "reducers": []
+            },
+            "inspect": false
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": 0
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Severidade"
+            },
+            "properties": [
+              {
+                "id": "mappings",
+                "value": [
+                  {
+                    "options": {
+                      "aviso": {
+                        "color": "orange",
+                        "text": "⚠️ AVISO"
+                      },
+                      "urgente": {
+                        "color": "red",
+                        "text": "🚨 URGENTE"
+                      }
+                    },
+                    "type": "value"
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "h": 10,
+        "w": 24,
+        "x": 0,
+        "y": 24
+      },
+      "id": 1,
+      "options": {
+        "cellHeight": "sm",
+        "showHeader": true,
+        "sortBy": [
+          {
+            "desc": true,
+            "displayName": "Horário"
+          }
+        ]
+      },
+      "pluginVersion": "12.3.1",
+      "targets": [
+        {
+          "expr": "max by (alertname, severity, service) (ALERTS{alertname=~\"HighError.*|HighLatency.*\"})",
+          "format": "table",
+          "instant": false,
+          "refId": "A"
+        }
+      ],
+      "title": "Histórico de Alertas",
+      "transformations": [
+        {
+          "id": "organize",
+          "options": {
+            "excludeByName": {
+              "Value": true
+            },
+            "includeByName": {},
+            "indexByName": {},
+            "renameByName": {
+              "Time": "Horário",
+              "alertname": "Alerta",
+              "service": "Serviço",
+              "severity": "Tipo"
+            }
+          }
+        }
+      ],
+      "type": "table"
+    },
+        {
           "type": "timeseries",
           "title": "RPS (req/s)",
           "gridPos": { "h": 8, "w": 12, "x": 0, "y": 0 },

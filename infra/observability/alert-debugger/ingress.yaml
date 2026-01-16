@@ -1,0 +1,20 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: alert-debugger
+  namespace: observability
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /
+spec:
+  ingressClassName: nginx
+  rules:
+    - host: dev.local
+      http:
+        paths:
+          - path: /alert-debugger
+            pathType: Prefix
+            backend:
+              service:
+                name: alert-debugger
+                port:
+                  number: 8080

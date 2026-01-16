@@ -59,7 +59,6 @@ spec:
             sum(rate(http_requests_total{job=~"available-schedules-(python|go)"}[5m]))
           labels:
             metric_type: error_ratio
-            service: available-schedules
         
         # Taxa de erro TOTAL (1h)
         - record: http_error_rate:ratio1h
@@ -69,8 +68,7 @@ spec:
             sum(rate(http_requests_total{job=~"available-schedules-(python|go)"}[1h]))
           labels:
             metric_type: error_ratio
-            service: available-schedules
-        
+       
         # Latência p50 por serviço (5min)
         - record: job:http_latency_p50:5m
           expr: |
@@ -125,8 +123,7 @@ spec:
             )
           labels:
             metric_type: latency
-            service: available-schedules
-        
+
         # Latência p95 TOTAL (1h)
         - record: http_latency_p95:1h
           expr: |
@@ -138,6 +135,24 @@ spec:
           labels:
             metric_type: latency
             service: available-schedules
+        
+        # Taxa de erro TOTAL (2h) - para SLO burn-rate rápido
+        - record: http_error_rate:ratio2h
+          expr: |
+            sum(rate(http_requests_total{job=~"available-schedules-(python|go)",status=~"5.."}[2h]))
+            / 
+            sum(rate(http_requests_total{job=~"available-schedules-(python|go)"}[2h]))
+          labels:
+            metric_type: error_ratio
+        
+        # Taxa de erro TOTAL (6h) - para SLO burn-rate lento
+        - record: http_error_rate:ratio6h
+          expr: |
+            sum(rate(http_requests_total{job=~"available-schedules-(python|go)",status=~"5.."}[6h]))
+            / 
+            sum(rate(http_requests_total{job=~"available-schedules-(python|go)"}[6h]))
+          labels:
+            metric_type: error_ratio
 
     - name: app.availability
       rules:
@@ -166,6 +181,8 @@ spec:
             service: available-schedules
             team: backend-team
             slo: "99.5"
+            alertgroup: app.availability
+            namespace: observability
           annotations:
             summary: "Taxa de erro entre 0.5-3%"
             description: |
@@ -190,6 +207,8 @@ spec:
             service: available-schedules
             team: backend-team
             slo: "99.5"
+            alertgroup: app.availability
+            namespace: observability
           annotations:
             summary: "URGENTE: Taxa de erro >3%"
             description: |
@@ -200,7 +219,96 @@ spec:
               
               Dashboard: http://dev.local/grafana/d/877494b4-6887-463c-9333-96c2b1fbf2b7
               Runbook: https://github.com/feegow/devops-trial-task/blob/main/runbooks/erro-5xx.md
-
+        
+        # ═══════════════════════════════════════════════════════════════════
+        # Item 2 - SLO + Burn-Rate (Entregáveis)
+        # ═══════════════════════════════════════════════════════════════════
+        # SLI: Indicador - % de requisições não-5xx em /api/*
+        #      Fórmula: (total - 5xx) / total × 100
+        # SLO: Objetivo - 99.5% disponibilidade em janela móvel de 30 dias
+        #      Error budget: 0.5% (requisições podem falhar)
+        # Burn-rate: Velocidade de consumo do error budget
+        #      1× = normal (30 dias), 6× = crítico (5 dias), 14× = catastrófico (2 dias)
+        # ═══════════════════════════════════════════════════════════════════
+        
+        # ─────────────────────────────────────────────────────────────────
+        # ALERTA: SLOBurnRateFast (severity: page)
+        # Janelas: 5m + 2h | Threshold: >1% erro | Burn-rate: ~20×
+        # JUSTIFICATIVA: Detecta consumo crítico do error budget. Multi-window
+        #   (5m+2h) confirma tendência sustentada, eliminando falsos positivos
+        #   de deploys. Burn-rate 20× esgota budget em 1.5 dias = URGENTE.
+        # ─────────────────────────────────────────────────────────────────
+        - alert: SLOBurnRateFast
+          expr: |
+            # JANELA CURTA
+            (http_error_rate:ratio5m > 0.01)
+            and
+            # JANELA LONGA
+            (http_error_rate:ratio2h > 0.01)
+          for: 2m
+          labels:
+            severity: page
+            service: available-schedules
+            team: backend-team
+            slo: "99.5"
+            alert_type: slo_burn_rate
+            burn_rate_window: "2h"
+            alertgroup: app.availability
+            namespace: observability
+          annotations:
+            summary: "SLO Burn Rate CRÍTICO"
+            description: |
+              Taxa de erro atual: {{ $value | humanizePercentage }}
+              SLO: 99.5% disponibilidade (error budget 0.5%/30d)
+              Janelas: 5min + 2h confirmam consumo acelerado
+              
+              Burn rate: ~20× (CRÍTICO)
+              Projeção: Error budget esgota em ~1.5 dias
+              Impacto: Budget mensal consumido rapidamente
+              
+              Dashboard: http://dev.local/grafana/d/877494b4-6887-463c-9333-96c2b1fbf2b7
+              Runbook: https://github.com/feegow/devops-trial-task/blob/main/runbooks/erro-5xx.md
+        
+        # ─────────────────────────────────────────────────────────────────
+        # ALERTA: SLOBurnRateSlow (severity: ticket)
+        # Janelas: 1h + 6h | Threshold: 0.5-1% erro | Burn-rate: ~10×
+        # JUSTIFICATIVA: Detecta consumo acelerado mas gerenciável. Limitador
+        #   Burn-rate 10× permite investigação proativa (esgota em ~3 dias).
+        # ─────────────────────────────────────────────────────────────────
+        - alert: SLOBurnRateSlow
+          expr: |
+            # JANELA CURTA
+            (http_error_rate:ratio1h > 0.005)
+            and
+            # JANELA LONGA
+            (http_error_rate:ratio6h > 0.005)
+            and
+            # LIMITADOR
+            (http_error_rate:ratio1h < 0.01)
+          for: 5m
+          labels:
+            severity: ticket
+            service: available-schedules
+            team: backend-team
+            slo: "99.5"
+            alert_type: slo_burn_rate
+            burn_rate_window: "6h"
+            alertgroup: app.availability
+            namespace: observability
+          annotations:
+            summary: "SLO Burn Rate Elevado"
+            description: |
+              Taxa de erro atual: {{ $value | humanizePercentage }}
+              SLO: 99.5% disponibilidade (error budget 0.5%/30d)
+              Janelas: 1h + 6h confirmam consumo acelerado
+              
+              Burn rate: ~10× (ELEVADO)
+              Projeção: Error budget esgota em ~3 dias
+              Impacto: Requer investigação mas não urgência extrema
+              
+              Dashboard: http://dev.local/grafana/d/877494b4-6887-463c-9333-96c2b1fbf2b7
+              Runbook: https://github.com/feegow/devops-trial-task/blob/main/runbooks/erro-5xx.md
+        
         # ─────────────────────────────────────────────────────────────────
         # ALERTA: HighLatencyP95
         # ANTES: Janela 3m, for 1m, histogram_quantile complexo, 150ms
@@ -226,6 +334,8 @@ spec:
             service: available-schedules
             team: backend-team
             slo: "99.5"
+            alertgroup: app.availability
+            namespace: observability
           annotations:
             summary: "Latência p95 entre 500-800ms"
             description: |
@@ -249,7 +359,9 @@ spec:
             severity: page
             service: available-schedules
             team: backend-team
-            slo: "99.5"                                 
+            slo: "99.5"
+            alertgroup: app.availability
+            namespace: observability                                 
           annotations:
             summary: "URGENTE: Latência p95 >800ms"
             description: |

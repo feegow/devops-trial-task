@@ -2,6 +2,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: alert-debugger
+  namespace: observability
   labels: { app: alert-debugger }
 spec:
   replicas: 1
@@ -13,8 +14,12 @@ spec:
     spec:
       containers:
         - name: echo
-          image: ghcr.io/caarlos0/httpecho:latest
-          args: ["-port", "8080", "-i"]
+          image: mendhak/http-https-echo:31
+          env:
+            - name: HTTP_PORT
+              value: "8080"
+            - name: LOG_WITHOUT_NEWLINE
+              value: "true"
           ports:
             - containerPort: 8080
 ---
@@ -22,6 +27,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: alert-debugger
+  namespace: observability
 spec:
   selector: { app: alert-debugger }
   ports:

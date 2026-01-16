@@ -16,7 +16,68 @@ data:
   alertmanager.yaml: |
     route:
       receiver: webhook
+      group_by: ['alertname', 'service', 'severity']
+      group_wait: 10s
+      group_interval: 5m
+      repeat_interval: 1h
+      routes:
+        
+        - match:
+            severity: page
+          receiver: pagerduty-critical
+          continue: true
+          group_wait: 10s
+          group_interval: 5m
+          repeat_interval: 5m
+        
+        - match:
+            severity: ticket
+          receiver: slack-tickets
+          continue: true
+          repeat_interval: 12h
+        
+        - match:
+            severity: warning
+          receiver: slack-warnings
+          continue: true
+          repeat_interval: 24h
+    
     receivers:
       - name: webhook
         webhook_configs:
           - url: http://alert-debugger.observability.svc.cluster.local:8080/
+      - name: pagerduty-critical
+        webhook_configs:
+          - url: http://alert-debugger.observability.svc.cluster.local:8080/
+            send_resolved: true
+        # Para PRODUÇÃO, descomentar e configurar:
+        # pagerduty_configs:
+        #   - routing_key: <PAGERDUTY_INTEGRATION_KEY>
+        #     severity: critical
+        #     description: '{{ .GroupLabels.alertname }}: {{ .CommonAnnotations.summary }}'
+        #     client: 'Prometheus'
+        #     client_url: 'http://dev.local/prometheus'
+      
+      - name: slack-tickets
+        webhook_configs:
+          - url: http://alert-debugger.observability.svc.cluster.local:8080/
+            send_resolved: true
+        # Para PRODUÇÃO, descomentar e configurar:
+        # slack_configs:
+        #   - api_url: <SLACK_WEBHOOK_URL>
+        #     channel: '#sre-alerts'
+        #     title: 'SLO Alert: {{ .GroupLabels.alertname }}'
+        #     text: |
+        #       *{{ .CommonAnnotations.summary }}*
+        #       {{ .CommonAnnotations.description }}
+        #     send_resolved: true
+
+      - name: slack-warnings
+        webhook_configs:
+          - url: http://alert-debugger.observability.svc.cluster.local:8080/
+            send_resolved: true
+        # Para PRODUÇÃO, adicionar:
+        # slack_configs:
+        #   - api_url: <SLACK_WEBHOOK_URL>
+        #     channel: '#monitoring'
+        #     title: 'Warning: {{ .GroupLabels.alertname }}'

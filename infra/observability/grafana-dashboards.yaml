@@ -70,7 +70,7 @@ data:
           "pluginVersion":"12.3.1",
           "targets":[
             {
-              "expr":"max by (alertname, severity, service) (ALERTS{alertname=~\"HighError.*|HighLatency.*\"})",
+              "expr":"max by (alertname, severity, service) (ALERTS{alertgroup=\"app.availability\"})",
               "format":"table",
               "instant":false,
               "refId":"A"

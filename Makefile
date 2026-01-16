@@ -8,7 +8,7 @@ NAMESPACE_OBS := observability
 log = @sh -c 'printf "\n==> %s\n" "$$1"' _ "$(1)"
 sublog = @sh -c 'printf "    - %s\n" "$$1"' _ "$(1)"
 
-.PHONY: up down deploy app.build app.load helm.repos obs.install load fire-alerts calm dashboards.export
+.PHONY: up down deploy app.build app.load helm.repos obs.install load fire-alerts calm dashboards.export test test.python test.go test.web test.all ci.local ci.act
 
 up: ## Cria cluster kind e instala stack de observabilidade + ingress
 	$(call log,Validação de pré-requisitos)
@@ -105,3 +105,51 @@ down: ## Destroi cluster
 	$(call log,Removendo cluster kind '$(KIND_CLUSTER)')
 	@kind delete cluster --name $(KIND_CLUSTER) >/dev/null
 	$(call sublog,Cluster removido)
+
+## Testes Unitários
+test.python: ## Executa testes Python com cobertura
+	$(call log,Executando testes Python)
+	@cd apps/available-schedules-python && \
+		pip install -q -r requirements.txt && \
+		pytest tests/ -v --cov=. --cov-report=html --cov-report=term
+	$(call sublog,Testes Python concluídos)
+
+test.go: ## Executa testes Go com cobertura
+	$(call log,Executando testes Go)
+	@cd apps/available-schedules-go && \
+		go test -v -race -coverprofile=coverage.out ./... && \
+		go tool cover -html=coverage.out -o coverage.html && \
+		go tool cover -func=coverage.out
+	$(call sublog,Testes Go concluídos)
+
+test.web: ## Executa testes Node.js com cobertura
+	$(call log,Executando testes Node.js)
+	@cd apps/available-schedules-web && \
+		npm install && \
+		npm test -- --coverage
+	$(call sublog,Testes Node.js concluídos)
+
+test.all: test.python test.go test.web ## Executa todos os testes
+	$(call log,Todos os testes executados com sucesso!)
+
+test: test.all ## Alias para test.all
+
+ci.local: ## Executa pipeline CI localmente (requer act)
+	$(call log,Executando pipeline CI com act)
+	@if ! command -v act >/dev/null 2>&1; then \
+		echo "act não instalado"; \
+		exit 1; \
+	fi
+	@act -j test-python -j test-go -j test-nodejs
+
+ci.act: ## Executa job específico com act (use JOB=nome)
+	$(call log,Executando job '$(JOB)' com act)
+	@if ! command -v act >/dev/null 2>&1; then \
+		echo "act não instalado"; \
+		exit 1; \
+	fi
+	@if [ -z "$(JOB)" ]; then \
+		echo "Especifique o job: make ci.act JOB=test-python"; \
+		exit 1; \
+	fi
+	@act -j $(JOB) -v

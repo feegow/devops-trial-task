@@ -1,0 +1,93 @@
+
+==> Executando pipeline CI com act
+time="2026-01-16T07:37:21-03:00" level=info msg="Using docker host 'unix:///Users/maiara.nascimento/.colima/docker.sock', and daemon socket 'unix:///Users/maiara.nascimento/.colima/docker.sock'"
+level=warning msg= ⚠ You are using Apple M-series chip and you have not specified container architecture, you might encounter issues while running act. If so, try running it with '--container-architecture linux/amd64'. ⚠ 
+
+[CI Pipeline/Node.js Unit Tests] ⭐ Run Set up job
+[CI Pipeline/Node.js Unit Tests] 🚀  Start image=catthehacker/ubuntu:act-latest
+[CI Pipeline/Node.js Unit Tests]   🐳  docker pull image=catthehacker/ubuntu:act-latest platform= username= forcePull=true
+[CI Pipeline/Node.js Unit Tests] using DockerAuthConfig authentication for docker pull
+[CI Pipeline/Node.js Unit Tests]   🐳  docker create image=catthehacker/ubuntu:act-latest platform= entrypoint=["tail" "-f" "/dev/null"] cmd=[] network="host"
+[CI Pipeline/Node.js Unit Tests]   🐳  docker run image=catthehacker/ubuntu:act-latest platform= entrypoint=["tail" "-f" "/dev/null"] cmd=[] network="host"
+[CI Pipeline/Node.js Unit Tests]   🐳  docker exec cmd=[node --no-warnings -e console.log(process.execPath)] user= workdir=
+[CI Pipeline/Node.js Unit Tests]   ✅  Success - Set up job
+[CI Pipeline/Node.js Unit Tests]   ☁  git clone 'https://github.com/actions/setup-node' # ref=v4
+[CI Pipeline/Node.js Unit Tests]   ☁  git clone 'https://github.com/actions/upload-artifact' # ref=v4
+[CI Pipeline/Node.js Unit Tests] ⭐ Run Main Checkout code
+[CI Pipeline/Node.js Unit Tests]   🐳  docker cp src=/Users/maiara.nascimento/Documents/GitHub/devops-trial-task/. dst=/Users/maiara.nascimento/Documents/GitHub/devops-trial-task
+[CI Pipeline/Node.js Unit Tests]   ✅  Success - Main Checkout code [79.802125ms]
+[CI Pipeline/Node.js Unit Tests] ⭐ Run Main Set up Node.js
+[CI Pipeline/Node.js Unit Tests]   🐳  docker cp src=/Users/maiara.nascimento/.cache/act/actions-setup-node@v4/ dst=/var/run/act/actions/actions-setup-node@v4/
+[CI Pipeline/Node.js Unit Tests]   🐳  docker exec cmd=[/opt/acttoolcache/node/18.20.8/arm64/bin/node /var/run/act/actions/actions-setup-node@v4/dist/setup/index.js] user= workdir=
+[CI Pipeline/Node.js Unit Tests]   | Found in cache @ /opt/hostedtoolcache/node/20.20.0/arm64
+[CI Pipeline/Node.js Unit Tests]   ❓  ::group::Environment details
+[CI Pipeline/Node.js Unit Tests]   | node: v20.20.0
+[CI Pipeline/Node.js Unit Tests]   | npm: 10.8.2
+[CI Pipeline/Node.js Unit Tests]   | yarn: 
+[CI Pipeline/Node.js Unit Tests]   ❓  ::endgroup::
+[CI Pipeline/Node.js Unit Tests]   ❓ add-matcher /run/act/actions/actions-setup-node@v4/.github/tsc.json
+[CI Pipeline/Node.js Unit Tests]   ❓ add-matcher /run/act/actions/actions-setup-node@v4/.github/eslint-stylish.json
+[CI Pipeline/Node.js Unit Tests]   ❓ add-matcher /run/act/actions/actions-setup-node@v4/.github/eslint-compact.json
+[CI Pipeline/Node.js Unit Tests]   ✅  Success - Main Set up Node.js [772.624375ms]
+[CI Pipeline/Node.js Unit Tests]   ⚙  ::set-output:: node-version=v20.20.0
+[CI Pipeline/Node.js Unit Tests]   ⚙  ::add-path:: /opt/hostedtoolcache/node/20.20.0/arm64/bin
+[CI Pipeline/Node.js Unit Tests] ⭐ Run Main Install dependencies
+[CI Pipeline/Node.js Unit Tests]   🐳  docker exec cmd=[bash -e /var/run/act/workflow/2] user= workdir=./apps/available-schedules-web
+[CI Pipeline/Node.js Unit Tests]   | npm warn deprecated inflight@1.0.6: This module is not supported, and leaks memory. Do not use it. Check out lru-cache if you want a good and tested way to coalesce async requests by a key value, which is much more comprehensive and powerful.
+[CI Pipeline/Node.js Unit Tests]   | npm warn deprecated glob@7.2.3: Glob versions prior to v9 are no longer supported
+[CI Pipeline/Node.js Unit Tests]   | 
+[CI Pipeline/Node.js Unit Tests]   | added 266 packages, and audited 267 packages in 2s
+[CI Pipeline/Node.js Unit Tests]   | 
+[CI Pipeline/Node.js Unit Tests]   | 32 packages are looking for funding
+[CI Pipeline/Node.js Unit Tests]   |   run `npm fund` for details
+[CI Pipeline/Node.js Unit Tests]   | 
+[CI Pipeline/Node.js Unit Tests]   | found 0 vulnerabilities
+[CI Pipeline/Node.js Unit Tests]   ✅  Success - Main Install dependencies [1.804603333s]
+[CI Pipeline/Node.js Unit Tests] ⭐ Run Main Run unit tests with coverage
+[CI Pipeline/Node.js Unit Tests]   🐳  docker exec cmd=[bash -e /var/run/act/workflow/3] user= workdir=./apps/available-schedules-web
+[CI Pipeline/Node.js Unit Tests]   | 
+[CI Pipeline/Node.js Unit Tests]   | > available-schedules-web@1.0.0 test
+[CI Pipeline/Node.js Unit Tests]   | > node --experimental-vm-modules node_modules/jest/bin/jest.js --coverage
+[CI Pipeline/Node.js Unit Tests]   | 
+[CI Pipeline/Node.js Unit Tests]   | (node:93) ExperimentalWarning: VM Modules is an experimental feature and might change at any time
+[CI Pipeline/Node.js Unit Tests]   | (Use `node --trace-warnings ...` to show where the warning was created)
+[CI Pipeline/Node.js Unit Tests]   | PASS ./server.test.mjs
+[CI Pipeline/Node.js Unit Tests]   |   Available Schedules Web - Unit Tests
+[CI Pipeline/Node.js Unit Tests]   |     Date Utilities
+[CI Pipeline/Node.js Unit Tests]   |       ✓ should parse date string correctly (1 ms)
+[CI Pipeline/Node.js Unit Tests]   |       ✓ should validate date format (1 ms)
+[CI Pipeline/Node.js Unit Tests]   |       ✓ should generate date range
+[CI Pipeline/Node.js Unit Tests]   |     Schedule Generation
+[CI Pipeline/Node.js Unit Tests]   |       ✓ should generate time slots (1 ms)
+[CI Pipeline/Node.js Unit Tests]   |       ✓ should create schedule object
+[CI Pipeline/Node.js Unit Tests]   |     Request Validation
+[CI Pipeline/Node.js Unit Tests]   |       ✓ should validate date parameters
+[CI Pipeline/Node.js Unit Tests]   |     Response Formatting
+[CI Pipeline/Node.js Unit Tests]   |       ✓ should format success response (1 ms)
+[CI Pipeline/Node.js Unit Tests]   |       ✓ should format error response
+[CI Pipeline/Node.js Unit Tests]   |     Health Check
+[CI Pipeline/Node.js Unit Tests]   |       ✓ should return healthy status
+[CI Pipeline/Node.js Unit Tests]   | 
+[CI Pipeline/Node.js Unit Tests]   | ------------|---------|----------|---------|---------|-------------------
+[CI Pipeline/Node.js Unit Tests]   | File        | % Stmts | % Branch | % Funcs | % Lines | Uncovered Line #s 
+[CI Pipeline/Node.js Unit Tests]   | ------------|---------|----------|---------|---------|-------------------
+[CI Pipeline/Node.js Unit Tests]   | All files   |       0 |        0 |       0 |       0 |                   
+[CI Pipeline/Node.js Unit Tests]   |  server.mjs |       0 |        0 |       0 |       0 | 6-156             
+[CI Pipeline/Node.js Unit Tests]   | ------------|---------|----------|---------|---------|-------------------
+[CI Pipeline/Node.js Unit Tests]   | Test Suites: 1 passed, 1 total
+[CI Pipeline/Node.js Unit Tests]   | Tests:       9 passed, 9 total
+[CI Pipeline/Node.js Unit Tests]   | Snapshots:   0 total
+[CI Pipeline/Node.js Unit Tests]   | Time:        0.314 s
+[CI Pipeline/Node.js Unit Tests]   | Ran all test suites.
+[CI Pipeline/Node.js Unit Tests]   ✅  Success - Main Run unit tests with coverage [608.58225ms]
+[CI Pipeline/Node.js Unit Tests] ⭐ Run Main Check test exit code
+[CI Pipeline/Node.js Unit Tests]   🐳  docker exec cmd=[bash -e /var/run/act/workflow/5] user= workdir=./apps/available-schedules-web
+[CI Pipeline/Node.js Unit Tests]   | ✅ Node.js tests passed successfully!
+[CI Pipeline/Node.js Unit Tests]   ✅  Success - Main Check test exit code [41.278541ms]
+[CI Pipeline/Node.js Unit Tests] ⭐ Run Post Set up Node.js
+[CI Pipeline/Node.js Unit Tests]   🐳  docker exec cmd=[/opt/acttoolcache/node/18.20.8/arm64/bin/node /var/run/act/actions/actions-setup-node@v4/dist/cache-save/index.js] user= workdir=
+[CI Pipeline/Node.js Unit Tests]   ✅  Success - Post Set up Node.js [146.899084ms]
+[CI Pipeline/Node.js Unit Tests] ⭐ Run Complete job
+[CI Pipeline/Node.js Unit Tests] Cleaning up container for job Node.js Unit Tests
+[CI Pipeline/Node.js Unit Tests]   ✅  Success - Complete job
+[CI Pipeline/Node.js Unit Tests] 🏁  Job succeeded

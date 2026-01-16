@@ -4,3 +4,5 @@ prometheus_client==0.21.0
 opentelemetry-sdk==1.27.0
 opentelemetry-exporter-otlp==1.27.0
 opentelemetry-instrumentation-fastapi==0.48b0
+pytest==8.0.0
+pytest-cov==4.1.0

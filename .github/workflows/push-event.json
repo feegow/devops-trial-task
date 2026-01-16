@@ -1,0 +1,35 @@
+{
+  "ref": "refs/heads/main",
+  "before": "0000000000000000000000000000000000000000",
+  "after": "1111111111111111111111111111111111111111",
+  "repository": {
+    "name": "devops-trial-task",
+    "owner": {
+      "name": "test-user",
+      "email": "test@example.com"
+    },
+    "full_name": "test-user/devops-trial-task",
+    "private": false
+  },
+  "pusher": {
+    "name": "test-user",
+    "email": "test@example.com"
+  },
+  "sender": {
+    "login": "test-user",
+    "type": "User"
+  },
+  "head_commit": {
+    "id": "1111111111111111111111111111111111111111",
+    "message": "Add CI/CD pipeline with unit tests",
+    "timestamp": "2026-01-16T10:00:00Z",
+    "author": {
+      "name": "Test User",
+      "email": "test@example.com"
+    },
+    "committer": {
+      "name": "Test User",
+      "email": "test@example.com"
+    }
+  }
+}

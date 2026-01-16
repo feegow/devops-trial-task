@@ -14,9 +14,15 @@ import (
 )
 
 type metricsStore struct {
-	mu           sync.Mutex
-	counts       map[string]map[int]float64
+	mu sync.Mutex
+	// route -> status -> count
+	counts map[string]map[int]float64
+	// route -> histogram data
+	histograms   map[string]*histogramData
 	buckets      []float64
+}
+
+type histogramData struct {
 	bucketCounts []float64
 	sum          float64
 	count        float64
@@ -24,9 +30,9 @@ type metricsStore struct {
 
 func newMetricsStore(buckets []float64) *metricsStore {
 	return &metricsStore{
-		counts:       make(map[string]map[int]float64),
-		buckets:      buckets,
-		bucketCounts: make([]float64, len(buckets)+1), // +Inf bucket
+		counts:     make(map[string]map[int]float64),
+		histograms: make(map[string]*histogramData),
+		buckets:    buckets,
 	}
 }
 
@@ -34,21 +40,30 @@ func (m *metricsStore) observe(route string, status int, durationSeconds float64
 	m.mu.Lock()
 	defer m.mu.Unlock()
 
+	// Update counter
 	if _, ok := m.counts[route]; !ok {
 		m.counts[route] = make(map[int]float64)
 	}
 	m.counts[route][status]++
 
-	m.sum += durationSeconds
-	m.count++
+	// Update histogram for this route
+	if _, ok := m.histograms[route]; !ok {
+		m.histograms[route] = &histogramData{
+			bucketCounts: make([]float64, len(m.buckets)+1),
+		}
+	}
+
+	hist := m.histograms[route]
+	hist.sum += durationSeconds
+	hist.count++
 
 	for i, boundary := range m.buckets {
 		if durationSeconds <= boundary {
-			m.bucketCounts[i]++
+			hist.bucketCounts[i]++
 			return
 		}
 	}
-	m.bucketCounts[len(m.bucketCounts)-1]++
+	hist.bucketCounts[len(hist.bucketCounts)-1]++
 }
 
 func (m *metricsStore) writePrometheus(w http.ResponseWriter) {
@@ -72,21 +87,25 @@ func (m *metricsStore) writePrometheus(w http.ResponseWriter) {
 
 	fmt.Fprintln(w, "# HELP http_request_duration_seconds Request latency in seconds")
 	fmt.Fprintln(w, "# TYPE http_request_duration_seconds histogram")
-	cumulative := 0.0
-	for i, boundary := range m.buckets {
-		cumulative += m.bucketCounts[i]
-		fmt.Fprintf(
-			w,
-			`http_request_duration_seconds_bucket{le="%g"} %.0f`+"\n",
-			boundary,
-			cumulative,
-		)
+	
+	for route, hist := range m.histograms {
+		cumulative := 0.0
+		for i, boundary := range m.buckets {
+			cumulative += hist.bucketCounts[i]
+			fmt.Fprintf(
+				w,
+				`http_request_duration_seconds_bucket{route=%q,le="%g"} %.0f`+"\n",
+				route,
+				boundary,
+				cumulative,
+			)
+		}
+		// +Inf bucket
+		cumulative += hist.bucketCounts[len(hist.bucketCounts)-1]
+		fmt.Fprintf(w, `http_request_duration_seconds_bucket{route=%q,le="+Inf"} %.0f`+"\n", route, cumulative)
+		fmt.Fprintf(w, `http_request_duration_seconds_sum{route=%q} %.6f`+"\n", route, hist.sum)
+		fmt.Fprintf(w, `http_request_duration_seconds_count{route=%q} %.0f`+"\n", route, hist.count)
 	}
-	// +Inf bucket
-	cumulative += m.bucketCounts[len(m.bucketCounts)-1]
-	fmt.Fprintf(w, `http_request_duration_seconds_bucket{le="+Inf"} %.0f`+"\n", cumulative)
-	fmt.Fprintf(w, "http_request_duration_seconds_sum %.6f\n", m.sum)
-	fmt.Fprintf(w, "http_request_duration_seconds_count %.0f\n", m.count)
 }
 
 type statusWriter struct {

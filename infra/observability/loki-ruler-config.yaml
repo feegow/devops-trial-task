@@ -1,0 +1,42 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: loki-rules
+  namespace: observability
+data:
+  loki-rules.yaml: |
+    groups:
+      - name: logs_error_burst
+        interval: 1m
+        rules:
+          # _____________________________________________________________________________
+          # ALERTA: LogsErrorBurst
+          # OBJETIVO: Detectar explosão de logs de erro em 5 minutos
+          # THRESHOLD: >5 logs de erro por segundo
+          # LABELS: app, route, env, version
+          # _____________________________________________________________________________
+          - alert: LogsErrorBurst
+            expr: |
+              sum(rate({namespace="apps"} |~ "error" [5m])) > 5
+            for: 2m
+            labels:
+              severity: warning
+              service: available-schedules
+              team: backend-team
+              alert_type: logs_burst
+              alertgroup: app.logs
+            annotations:
+              summary: "Explosão de logs de erro detectada via Loki"
+              description: |
+                Taxa de logs de erro: {{ $value | printf "%.2f" }} logs/segundo
+                Namespace: {{ $labels.namespace }}
+                Job: {{ $labels.job }}
+                
+                Janela: 5 minutos
+                Threshold: >5 logs de erro/segundo
+                
+                Consulta LogQL usada:
+                {namespace="apps", job="{{ $labels.job }}"} |~ "error|ERROR|5.."
+                
+                Explore Loki: http://dev.local/grafana/explore
+                Dashboard: http://dev.local/grafana/d/877494b4-6887-463c-9333-96c2b1fbf2b7

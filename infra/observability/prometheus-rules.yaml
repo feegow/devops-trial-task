@@ -156,7 +156,7 @@ spec:
 
     - name: app.availability
       rules:
-        # ─────────────────────────────────────────────────────────────────
+        # _____________________________________________________________________________
         # ALERTA: HighErrorRate
         # ANTES: Janela 3m, for 1m, severity única (page)
         # DEPOIS: Multi-window 5m+1h, for 2m, 2 níveis (warning/page)
@@ -164,7 +164,7 @@ spec:
         #   spikes temporários. Thresholds graduados (0.5-3% warning, >3% 
         #   page) permitem roteamento adequado. Burn rate (1-6× vs 6×+) 
         #   contextualiza: 1× = 30 dias, 6× = 5 dias para esgotar budget.
-        # ─────────────────────────────────────────────────────────────────
+        # _____________________________________________________________________________
         - alert: HighErrorRateWarning
           expr: |
             # JANELA CURTA
@@ -220,24 +220,24 @@ spec:
               Dashboard: http://dev.local/grafana/d/877494b4-6887-463c-9333-96c2b1fbf2b7
               Runbook: https://github.com/feegow/devops-trial-task/blob/main/runbooks/erro-5xx.md
         
-        # ═══════════════════════════════════════════════════════════════════
+        # _____________________________________________________________________________
         # Item 2 - SLO + Burn-Rate (Entregáveis)
-        # ═══════════════════════════════════════════════════════════════════
+        # _____________________________________________________________________________
         # SLI: Indicador - % de requisições não-5xx em /api/*
         #      Fórmula: (total - 5xx) / total × 100
         # SLO: Objetivo - 99.5% disponibilidade em janela móvel de 30 dias
         #      Error budget: 0.5% (requisições podem falhar)
         # Burn-rate: Velocidade de consumo do error budget
         #      1× = normal (30 dias), 6× = crítico (5 dias), 14× = catastrófico (2 dias)
-        # ═══════════════════════════════════════════════════════════════════
+        # _____________________________________________________________________________
         
-        # ─────────────────────────────────────────────────────────────────
+        # _____________________________________________________________________________
         # ALERTA: SLOBurnRateFast (severity: page)
         # Janelas: 5m + 2h | Threshold: >1% erro | Burn-rate: ~20×
         # JUSTIFICATIVA: Detecta consumo crítico do error budget. Multi-window
         #   (5m+2h) confirma tendência sustentada, eliminando falsos positivos
         #   de deploys. Burn-rate 20× esgota budget em 1.5 dias = URGENTE.
-        # ─────────────────────────────────────────────────────────────────
+        # _____________________________________________________________________________
         - alert: SLOBurnRateFast
           expr: |
             # JANELA CURTA
@@ -269,12 +269,12 @@ spec:
               Dashboard: http://dev.local/grafana/d/877494b4-6887-463c-9333-96c2b1fbf2b7
               Runbook: https://github.com/feegow/devops-trial-task/blob/main/runbooks/erro-5xx.md
         
-        # ─────────────────────────────────────────────────────────────────
+        # _____________________________________________________________________________
         # ALERTA: SLOBurnRateSlow (severity: ticket)
         # Janelas: 1h + 6h | Threshold: 0.5-1% erro | Burn-rate: ~10×
         # JUSTIFICATIVA: Detecta consumo acelerado mas gerenciável. Limitador
         #   Burn-rate 10× permite investigação proativa (esgota em ~3 dias).
-        # ─────────────────────────────────────────────────────────────────
+        # _____________________________________________________________________________
         - alert: SLOBurnRateSlow
           expr: |
             # JANELA CURTA
@@ -309,7 +309,7 @@ spec:
               Dashboard: http://dev.local/grafana/d/877494b4-6887-463c-9333-96c2b1fbf2b7
               Runbook: https://github.com/feegow/devops-trial-task/blob/main/runbooks/erro-5xx.md
         
-        # ─────────────────────────────────────────────────────────────────
+        # _____________________________________________________________________________
         # ALERTA: HighLatencyP95
         # ANTES: Janela 3m, for 1m, histogram_quantile complexo, 150ms
         # DEPOIS: Multi-window 5m+1h, for 2m, recording rules, 500/800ms
@@ -317,7 +317,7 @@ spec:
         #   padronizam dashboards. Thresholds UX-driven (Nielsen): 500ms =
         #   "instantâneo", 800ms = frustração. Multi-window filtra ~80%
         #   alertas de cold starts/deploys mantendo detecção em 2-4min.
-        # ─────────────────────────────────────────────────────────────────
+        # _____________________________________________________________________________
         - alert: HighLatencyP95Warning
           expr: |
             # JANELA CURTA
@@ -345,7 +345,7 @@ spec:
               Burn rate: Entre 1× e 6×
             
               Dashboard: http://dev.local/grafana/d/877494b4-6887-463c-9333-96c2b1fbf2b7
-              Runbook: https://github.com/feegow/devops-trial-task/blob/main/runbooks/erro-5xx.md
+              Runbook: https://github.com/feegow/devops-trial-task/blob/main/runbooks/
 
         - alert: HighLatencyP95Page
           expr: |
@@ -371,4 +371,4 @@ spec:
               Burn rate: 6×+ (latency budget esgota rapidamente)
               
               Dashboard: http://dev.local/grafana/d/877494b4-6887-463c-9333-96c2b1fbf2b7
-              Runbook: https://github.com/feegow/devops-trial-task/blob/main/runbooks/erro-5xx.md
+              Runbook: https://github.com/feegow/devops-trial-task/blob/main/runbooks/

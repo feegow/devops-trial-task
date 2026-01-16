@@ -1,6 +1,8 @@
 import os
 import random
 import time
+import logging
+import json
 from datetime import datetime, timedelta, time as dt_time, date as dt_date
 from functools import wraps
 
@@ -16,11 +18,19 @@ from opentelemetry.sdk.trace.export import BatchSpanProcessor
 ERROR_RATE = float(os.getenv("ERROR_RATE", "0.01"))
 EXTRA_LATENCY_MS = int(os.getenv("EXTRA_LATENCY_MS", "0"))
 SERVICE_NAME = os.getenv("SERVICE_NAME", "available-schedules")
+ENV = os.getenv("ENV", "production")
+VERSION = os.getenv("VERSION", "v1.0.0")
 
 OTEL_ENDPOINT = os.getenv(
     "OTEL_EXPORTER_OTLP_ENDPOINT",
     "http://otel-collector.observability.svc.cluster.local:4318/v1/traces",
 )
+
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(message)s'
+)
+logger = logging.getLogger(__name__)
 
 resource = Resource.create({"service.name": SERVICE_NAME})
 provider = TracerProvider(resource=resource)
@@ -168,6 +178,7 @@ def observe_route(route: str):
     def decorator(handler):
         @wraps(handler)
         def wrapper(*args, **kwargs):
+            start_time = time.time()
             with LAT.time():
                 if EXTRA_LATENCY_MS > 0:
                     time.sleep(EXTRA_LATENCY_MS / 1000)
@@ -175,7 +186,20 @@ def observe_route(route: str):
                 with tracer.start_as_current_span(route) as span:
                     if random.random() < ERROR_RATE:
                         status = 500
+                        latency_ms = (time.time() - start_time) * 1000
                         span.set_attribute("error.type", "simulated_failure")
+                        
+                        logger.error(json.dumps({
+                            "level": "error",
+                            "service": SERVICE_NAME,
+                            "route": route,
+                            "status": status,
+                            "latency_ms": round(latency_ms, 2),
+                            "env": ENV,
+                            "version": VERSION,
+                            "note": "simulated failure"
+                        }, separators=(',', ':')))
+                        
                         result = Response(
                             content="transient error retrieving schedule",
                             status_code=status,
@@ -186,6 +210,19 @@ def observe_route(route: str):
                             status = result.status_code
                         else:
                             status = 200
+                        
+                        latency_ms = (time.time() - start_time) * 1000
+                        
+                        logger.info(json.dumps({
+                            "level": "info",
+                            "service": SERVICE_NAME,
+                            "route": route,
+                            "status": status,
+                            "latency_ms": round(latency_ms, 2),
+                            "env": ENV,
+                            "version": VERSION
+                        }, separators=(',', ':')))
+                        
                 REQS.labels(route=route, status=str(status)).inc()
                 return result
 

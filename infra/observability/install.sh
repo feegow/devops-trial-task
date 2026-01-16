@@ -88,6 +88,8 @@ helm_install "Instalando kube-prometheus-stack (release kps)" \
   -f infra/observability/values/kps-values.yaml \
   --wait --timeout "${KPS_TIMEOUT}" --atomic
 
+apply_manifest "Aplicando Loki rules ConfigMap" observability infra/observability/loki-ruler-config.yaml
+
 helm_install "Instalando Loki" \
   loki grafana/loki-stack \
   --namespace observability \

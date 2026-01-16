@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"log"
 	"math/rand"
 	"net/http"
 	"os"
@@ -303,19 +302,34 @@ func (s *server) instrument(route string, next http.HandlerFunc) http.HandlerFun
 		sw := &statusWriter{ResponseWriter: w, status: http.StatusOK}
 		ctx := context.WithValue(r.Context(), "route", route)
 
+		env := os.Getenv("ENV")
+		if env == "" {
+			env = "production"
+		}
+		version := os.Getenv("VERSION")
+		if version == "" {
+			version = "v2.0.0"
+		}
+
 		if rand.Float64() < s.errorRate {
 			sw.WriteHeader(http.StatusInternalServerError)
 			sw.Header().Set("Content-Type", "application/json")
 			_, _ = sw.Write([]byte(`{"error":"transient error retrieving schedule"}`))
-			log.Printf(`{"service":"%s","route":"%s","status":%d,"latency_ms":%.2f,"note":"simulated failure"}`,
-				s.serviceName, route, sw.status, float64(time.Since(start))/float64(time.Millisecond))
+
+			fmt.Fprintf(os.Stderr, `{"level":"error","service":"%s","route":"%s","status":%d,"latency_ms":%.2f,"env":"%s","version":"%s","note":"simulated failure"}`+"\n",
+				s.serviceName, route, sw.status,
+				float64(time.Since(start))/float64(time.Millisecond),
+				env, version)
 		} else {
 			next(sw, r.WithContext(ctx))
 			if sw.status == 0 {
 				sw.status = http.StatusOK
 			}
-			log.Printf(`{"service":"%s","route":"%s","status":%d,"latency_ms":%.2f}`,
-				s.serviceName, route, sw.status, float64(time.Since(start))/float64(time.Millisecond))
+
+			fmt.Fprintf(os.Stdout, `{"level":"info","service":"%s","route":"%s","status":%d,"latency_ms":%.2f,"env":"%s","version":"%s"}`+"\n",
+				s.serviceName, route, sw.status,
+				float64(time.Since(start))/float64(time.Millisecond),
+				env, version)
 		}
 
 		duration := time.Since(start).Seconds()
@@ -444,8 +458,9 @@ func main() {
 	http.HandleFunc("/appoints/available-schedule", app.instrument("/appoints/available-schedule", app.handleAvailableSchedule))
 
 	addr := ":8080"
-	log.Printf("starting %s listening on %s", serviceName, addr)
+	fmt.Fprintf(os.Stdout, "starting %s listening on %s\n", serviceName, addr)
 	if err := http.ListenAndServe(addr, nil); err != nil && !strings.Contains(err.Error(), "Server closed") {
-		log.Fatalf("server error: %v", err)
+		fmt.Fprintf(os.Stderr, "server error: %v\n", err)
+		os.Exit(1)
 	}
 }

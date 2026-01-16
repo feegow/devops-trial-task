@@ -1,5 +1,37 @@
 loki:
   auth_enabled: false
+  rulerConfig:
+    enable_api: true
+    alertmanager_url: http://kps-kube-prometheus-stack-alertmanager.observability.svc.cluster.local:9093
+    storage:
+      type: local
+      local:
+        directory: /rules
+    rule_path: /tmp/scratch
+    ring:
+      kvstore:
+        store: inmemory
+  config:
+    ruler:
+      enable_api: true
+      enable_alertmanager_v2: true
+      alertmanager_url: http://kps-kube-prometheus-stack-alertmanager.observability.svc.cluster.local:9093
+      storage:
+        type: local
+        local:
+          directory: /rules
+      rule_path: /tmp/rules
+      ring:
+        kvstore:
+          store: inmemory
+  extraVolumes:
+    - name: loki-rules
+      configMap:
+        name: loki-rules
+  extraVolumeMounts:
+    - name: loki-rules
+      mountPath: /rules
+      readOnly: true
 promtail:
   enabled: true
   config:
@@ -7,3 +39,23 @@ promtail:
       pipelineStages:
         - docker: {}
         - labeldrop: [container_hash]
+        - json:
+            expressions:
+              level: level
+              status: status
+              route: route
+              service: service
+              env: env
+              version: version
+              latency_ms: latency_ms
+              note: note
+        - labels:
+            level:
+            status:
+            route:
+            service:
+            env:
+            version:
+        - labeldrop:
+            - latency_ms
+            - note

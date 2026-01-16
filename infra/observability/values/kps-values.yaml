@@ -35,6 +35,9 @@ prometheus:
       matchLabels:
         release: kps
 alertmanager:
+  alertmanagerSpec:
+    externalUrl: http://dev.local/alertmanager/
+    routePrefix: /
   config:
     route:
       receiver: webhook
